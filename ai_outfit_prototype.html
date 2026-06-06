@@ -4161,11 +4161,11 @@
             setTimeout(() => {
                 addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 開啟一個極小並精確定位於螢幕外 (例如 left=3000) 的微型視窗，搭配防休眠音訊，實現完全無感的背景自動合成
-                const w = 120;
-                const h = 120;
-                const left = 3000;
-                const top = 3000;
+                // 開啟一個極小並精確定位於螢幕外 (例如 left=9999) 的微型視窗，搭配防休眠音訊，實現完全無感的背景自動合成
+                const w = 100;
+                const h = 100;
+                const left = 9999;
+                const top = 9999;
                 
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", 
