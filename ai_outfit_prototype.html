@@ -515,7 +515,7 @@
             position: absolute;
             top: 1.25rem;
             right: 1.25rem;
-            width: 270px;
+            width: 320px;
             background: rgba(10, 15, 30, 0.85);
             border: 1px solid rgba(57, 255, 20, 0.25);
             border-radius: 16px;
@@ -529,6 +529,17 @@
             backdrop-filter: blur(15px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(57, 255, 20, 0.05);
             text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+        }
+        .hud-payment-warning {
+            color: #ffd60a;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-bottom: 1px dashed rgba(57, 255, 20, 0.3);
+            padding-bottom: 8px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            text-shadow: 0 0 6px rgba(255, 214, 10, 0.4);
+            display: block;
         }
         .hud-title {
             font-weight: 800;
@@ -818,6 +829,11 @@
                 padding: 0.6rem;
                 border-radius: 10px;
             }
+            .hud-payment-warning {
+                font-size: 0.7rem !important;
+                padding-bottom: 4px !important;
+                margin-bottom: 4px !important;
+            }
             .hud-title { font-size: 0.65rem; }
             #hud-log-container { max-height: 80px; }
 
@@ -948,6 +964,11 @@
             .hud-diagnostics {
                 width: 220px;
                 font-size: 0.65rem;
+            }
+            .hud-payment-warning {
+                font-size: 0.75rem !important;
+                padding-bottom: 6px !important;
+                margin-bottom: 6px !important;
             }
         }
 
@@ -1168,8 +1189,11 @@
                 <div class="hud-diagnostics" id="hud-terminal">
                     <div class="hud-title">
                         <span>📡 VESTIS DIAGNOSTICS</span>
-                        <span id="vton-hud-timer" style="color:#39ff14; font-family: monospace; font-size: 0.8rem; margin-left: auto; margin-right: 10px; font-weight: 800;">0.0s</span>
+                        <span id="vton-hud-timer" style="color:#39ff14; font-family: monospace; font-size: 0.85rem; margin-left: auto; margin-right: 10px; font-weight: 800;">0.0s</span>
                         <span style="color:#39ff14; animation: blink 1s infinite;">●</span>
+                    </div>
+                    <div class="hud-payment-warning">
+                        💡 使用「一鍵多圖自動合成」需花費較多時間，如欲享受高速精緻畫質合成請改用「vton渲染付費」功能。
                     </div>
                     <div id="hud-log-container"></div>
                 </div>
@@ -3921,7 +3945,6 @@
             startHUDLoading();
             addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
             addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 200);
-            addHUDLine("💡 使用「一鍵多圖自動合成」需花費較多時間，如欲享受高速精緻畫質合成請改用「vton渲染付費」功能。", 300);
             
             showToast("🔮 正在進行一鍵多圖合成，若瀏覽器提示「下載多個檔案」，請點擊「允許」以利下載所有穿搭素材！");
             
