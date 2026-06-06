@@ -4039,21 +4039,26 @@
             // 啟動雙向輪詢以獲取合成結果
             startResultPolling();
             addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
-            addHUDLine("💡 提示：請保持新視窗在背景開啟（請勿最小化或完全遮蔽），以免瀏覽器省電休眠限制合成速度！", 450);
+            addHUDLine("💡 提示：請勿在前 5 秒上傳期間將新視窗最小化，送出指令後即可自由最小化！", 450);
 
             setTimeout(() => {
                 addHUDLine("🚀 正在背景啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 開啟一個正常大小且位於螢幕內部的視窗，避免被 Chromium 偵測為 invisible pixel 啟動 Tab Sleeping (休眠限制)，但隨即 focus 回主畫面
+                // 開啟一個適中大小並精確定位於螢幕右下角的小視窗，避免遮擋中央主畫面操作，同時大小足夠不被瀏覽器凍結
+                const w = 420;
+                const h = 420;
+                const left = (window.screen.availWidth || window.screen.width) - w - 20;
+                const top = (window.screen.availHeight || window.screen.height) - h - 60;
+                
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", 
                     "GeminiSynthWindow", 
-                    "width=850,height=750,left=150,top=150,menubar=no,status=no,toolbar=no,location=no,resizable=no"
+                    `width=${w},height=${h},left=${left},top=${top},menubar=no,status=no,toolbar=no,location=no,resizable=no`
                 );
                 
                 if (activeGeminiWindow) {
                     activeGeminiWindow.blur();
-                    showToast("🚀 Gemini 穿搭助手已在背景啟動，請保持其在背景開啟（請勿最小化），正常合成僅需約 30-50 秒...");
+                    showToast("🚀 Gemini 穿搭助手已在右下角開啟，請勿在前 5 秒內將其最小化，待上傳送出後即可將其最小化或置於背景。");
                     addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
                     addHUDLine("⏳ 請稍候，等待背景助手回傳合成結果 (預估需 30-50 秒)...", 800);
                 } else {
