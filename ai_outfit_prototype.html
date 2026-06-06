@@ -225,6 +225,46 @@
             box-shadow: 0 0 30px var(--accent-glow);
         }
 
+        .model-switch-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 46px;
+            height: 46px;
+            background: rgba(15, 23, 42, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 1.8rem;
+            font-weight: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 25;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+        }
+        .model-switch-btn:hover {
+            background: rgba(99, 102, 241, 0.65);
+            border-color: var(--cyan);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.5);
+            transform: translateY(-50%) scale(1.1);
+        }
+        .model-switch-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        .model-switch-left {
+            left: 1.25rem;
+        }
+        .model-switch-right {
+            right: 1.25rem;
+        }
+
         .scene-bg {
             position: absolute;
             inset: 0;
@@ -834,6 +874,17 @@
                 padding-bottom: 4px !important;
                 margin-bottom: 4px !important;
             }
+            .model-switch-btn {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1.4rem !important;
+            }
+            .model-switch-left {
+                left: 0.5rem !important;
+            }
+            .model-switch-right {
+                right: 0.5rem !important;
+            }
             .hud-title { font-size: 0.65rem; }
             #hud-log-container { max-height: 80px; }
 
@@ -969,6 +1020,17 @@
                 font-size: 0.75rem !important;
                 padding-bottom: 6px !important;
                 margin-bottom: 6px !important;
+            }
+            .model-switch-btn {
+                width: 40px !important;
+                height: 40px !important;
+                font-size: 1.6rem !important;
+            }
+            .model-switch-left {
+                left: 0.75rem !important;
+            }
+            .model-switch-right {
+                right: 0.75rem !important;
             }
         }
 
@@ -1197,6 +1259,10 @@
                     </div>
                     <div id="hud-log-container"></div>
                 </div>
+                
+                <!-- Model switcher semi-transparent left/right buttons -->
+                <button class="model-switch-btn model-switch-left" onclick="prevModel()" title="上一個模特兒">‹</button>
+                <button class="model-switch-btn model-switch-right" onclick="nextModel()" title="下一個模特兒">›</button>
                 
                 <div id="mannequin-scaler">
                     <div id="user-head" class="twin-head" style="display: none;">
@@ -1769,14 +1835,32 @@
 
 
         // --- MODEL SWITCHER ---
-        let currentModelIndex = Math.floor(Math.random() * 5); // 0 to 4
         const modelFiles = [
             '穿搭照片/模特兒/model1.png',
             '穿搭照片/模特兒/model2.png',
             '穿搭照片/模特兒/model3.png',
             '穿搭照片/模特兒/model4.png',
-            '穿搭照片/模特兒/model5.png'
+            '穿搭照片/模特兒/model5.png',
+            '穿搭照片/模特兒/model7.png',
+            '穿搭照片/模特兒/model9.png',
+            '穿搭照片/模特兒/model10.png',
+            '穿搭照片/模特兒/model11.png',
+            '穿搭照片/模特兒/model15.png',
+            '穿搭照片/模特兒/model16.png',
+            '穿搭照片/模特兒/model17.png',
+            '穿搭照片/模特兒/model26.png',
+            '穿搭照片/模特兒/model27.png',
+            '穿搭照片/模特兒/model28.png',
+            '穿搭照片/模特兒/model29.png',
+            '穿搭照片/模特兒/model32.png',
+            '穿搭照片/模特兒/model33.png',
+            '穿搭照片/模特兒/model34.png',
+            '穿搭照片/模特兒/model35.png',
+            '穿搭照片/模特兒/model38.png',
+            '穿搭照片/模特兒/model42.png',
+            '穿搭照片/模特兒/model44.png'
         ];
+        let currentModelIndex = Math.floor(Math.random() * modelFiles.length);
 
         async function initRandomModel() {
             const baseImg = document.getElementById('base-model');
@@ -1790,6 +1874,15 @@
 
         function nextModel() {
             currentModelIndex = (currentModelIndex + 1) % modelFiles.length;
+            updateModelDisplay();
+        }
+
+        function prevModel() {
+            currentModelIndex = (currentModelIndex - 1 + modelFiles.length) % modelFiles.length;
+            updateModelDisplay();
+        }
+
+        function updateModelDisplay() {
             const baseImg = document.getElementById('base-model');
             baseImg.src = modelFiles[currentModelIndex];
             baseImg.style.display = 'block';
