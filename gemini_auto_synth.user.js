@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         VESTIS AI Gemini 穿搭合成助手自動化腳本
 // @namespace    http://tampermonkey.net/
-// @version      2.1
+// @version      2.2
 // @description  自動化上傳 VESTIS 穿搭素材與提示詞至 Gemini 網頁前端，並自動將合成圖片帶回系統！
 // @author       Antigravity
 // @match        https://gemini.google.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      googleusercontent.com
 // @connect      *
-// @run-at       document-end
+// @run-at       document-start
 // ==/UserScript==
 
 (function() {
@@ -19,73 +19,169 @@
         return;
     }
 
-    // 建立頂部美麗的黑玻璃懸浮狀態列
-    const bar = document.createElement('div');
-    bar.id = 'vestis-automation-bar';
-    bar.style.cssText = `
-        position: fixed;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.9);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(6, 182, 212, 0.3);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(6, 182, 212, 0.2);
-        padding: 10px 20px;
-        border-radius: 100px;
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        font-family: system-ui, -apple-system, sans-serif;
-        color: #fff;
-        font-size: 13px;
-        transition: all 0.3s ease;
+    // 1. 立即注入 CSS，隱藏 Gemini 原始的所有元件（採用不影響 JS 與排版的 opacity: 0，避免破壞自動化流程與 API 初始），並定義 VESTIS 遮罩與載入樣式
+    const style = document.createElement('style');
+    style.textContent = `
+        /* 隱藏 Gemini 原始介面與對話框，但保持 DOM 存在以防框架 JS 引擎出錯 */
+        body > :not(#vestis-full-screen-mask):not(#vestis-automation-bar) {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.3s ease;
+        }
+        
+        /* 全螢幕 VESTIS AI 渲染遮罩 */
+        #vestis-full-screen-mask {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #0b0f19 !important; /* 暗黑背景 */
+            z-index: 2147483640 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: #ffffff !important;
+            font-family: system-ui, -apple-system, sans-serif !important;
+            gap: 25px !important;
+        }
+
+        /* 旋轉的 AI 核心動畫 */
+        .vestis-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(6, 182, 212, 0.1);
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            animation: vestis-spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            box-shadow: 0 0 15px rgba(6, 182, 212, 0.15);
+        }
+
+        @keyframes vestis-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .vestis-mask-title {
+            font-size: 16px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .vestis-mask-status-text {
+            font-size: 13px;
+            color: #94a3b8;
+            max-width: 80%;
+            text-align: center;
+            line-height: 1.6;
+        }
     `;
+    document.documentElement.appendChild(style);
 
-    // 1. 標題
-    const titleSpan = document.createElement('span');
-    titleSpan.style.cssText = 'font-weight: 800; color: #06b6d4;';
-    titleSpan.textContent = '🧬 VESTIS AI 助手 v2.1';
-    bar.appendChild(titleSpan);
+    let bar, statusSpan, manualBtn, closeBtn, mask, maskStatusEl;
 
-    // 2. 狀態文字
-    const statusSpan = document.createElement('span');
-    statusSpan.id = 'vestis-status';
-    statusSpan.style.cssText = 'color: #cbd5e1;';
-    statusSpan.textContent = '🔌 正在等待 VESTIS 網頁端傳遞穿搭素材...';
-    bar.appendChild(statusSpan);
+    // 建立頂部美麗的黑玻璃懸浮狀態列與遮罩，以完全遮蔽 Gemini 原始畫面
+    function initUI() {
+        if (document.getElementById('vestis-automation-bar')) return;
 
-    // 3. 手動帶回按鈕
-    const manualBtn = document.createElement('button');
-    manualBtn.id = 'vestis-btn-manual-get';
-    manualBtn.style.cssText = `
-        background: linear-gradient(135deg, #06b6d4, #0891b2);
-        color: white; border: none; padding: 4px 12px;
-        border-radius: 20px; cursor: pointer; font-size: 11px;
-        font-weight: 700; display: none;
-    `;
-    manualBtn.textContent = '📥 帶回最新合成圖';
-    bar.appendChild(manualBtn);
+        // 修改視窗標題，防止用戶看到 "Gemini" 字樣
+        document.title = "VESTIS AI Core Engine";
 
-    // 4. 關閉按鈕
-    const closeBtn = document.createElement('button');
-    closeBtn.id = 'vestis-btn-close';
-    closeBtn.style.cssText = `
-        background: transparent; color: #94a3b8; border: none;
-        cursor: pointer; font-size: 14px; font-weight: 700;
-    `;
-    closeBtn.textContent = '✕';
-    closeBtn.onclick = () => bar.remove();
-    bar.appendChild(closeBtn);
+        // 懸浮狀態列
+        bar = document.createElement('div');
+        bar.id = 'vestis-automation-bar';
+        bar.style.cssText = `
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(6, 182, 212, 0.2);
+            padding: 10px 20px;
+            border-radius: 100px;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: system-ui, -apple-system, sans-serif;
+            color: #fff;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        `;
 
-    document.body.appendChild(bar);
+        const titleSpan = document.createElement('span');
+        titleSpan.style.cssText = 'font-weight: 800; color: #06b6d4;';
+        titleSpan.textContent = '🧬 VESTIS AI 助手 v2.2';
+        bar.appendChild(titleSpan);
+
+        statusSpan = document.createElement('span');
+        statusSpan.id = 'vestis-status';
+        statusSpan.style.cssText = 'color: #cbd5e1;';
+        statusSpan.textContent = '🔌 正在等待 VESTIS 網頁端傳遞穿搭素材...';
+        bar.appendChild(statusSpan);
+
+        manualBtn = document.createElement('button');
+        manualBtn.id = 'vestis-btn-manual-get';
+        manualBtn.style.cssText = `
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            color: white; border: none; padding: 4px 12px;
+            border-radius: 20px; cursor: pointer; font-size: 11px;
+            font-weight: 700; display: none;
+        `;
+        manualBtn.textContent = '📥 帶回最新合成圖';
+        bar.appendChild(manualBtn);
+
+        closeBtn = document.createElement('button');
+        closeBtn.id = 'vestis-btn-close';
+        closeBtn.style.cssText = `
+            background: transparent; color: #94a3b8; border: none;
+            cursor: pointer; font-size: 14px; font-weight: 700;
+        `;
+        closeBtn.textContent = '✕';
+        closeBtn.onclick = () => {
+            bar.remove();
+            if (mask) mask.remove();
+        };
+        bar.appendChild(closeBtn);
+
+        // 建立全螢幕遮罩
+        mask = document.createElement('div');
+        mask.id = 'vestis-full-screen-mask';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'vestis-spinner';
+        mask.appendChild(spinner);
+
+        const maskTitle = document.createElement('div');
+        maskTitle.className = 'vestis-mask-title';
+        maskTitle.textContent = '🧬 VESTIS AI 渲染引擎';
+        mask.appendChild(maskTitle);
+
+        maskStatusEl = document.createElement('div');
+        maskStatusEl.id = 'vestis-mask-status';
+        maskStatusEl.className = 'vestis-mask-status-text';
+        maskStatusEl.textContent = '🔌 正在等待 VESTIS 網頁端傳遞穿搭素材...';
+        mask.appendChild(maskStatusEl);
+
+        document.body.prepend(mask);
+        document.body.appendChild(bar);
+    }
 
     function updateStatus(text, color = '#cbd5e1') {
-        const statusEl = document.getElementById('vestis-status');
-        if (statusEl) {
-            statusEl.innerText = text;
-            statusEl.style.color = color;
+        if (statusSpan) {
+            statusSpan.innerText = text;
+            statusSpan.style.color = color;
+        }
+        if (maskStatusEl) {
+            maskStatusEl.innerText = text;
+            maskStatusEl.style.color = color;
         }
     }
 
@@ -243,7 +339,14 @@
     }
 
     // 啟動連線初始化
-    initConnection();
+    async function startApp() {
+        while (!document.body) {
+            await new Promise(r => setTimeout(r, 30));
+        }
+        initUI();
+        initConnection();
+    }
+    startApp();
 
     // 核心自動化流程
     async function automateWorkflow(data) {
