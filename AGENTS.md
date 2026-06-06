@@ -75,3 +75,5 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **`clearItemSilent(cat)`** clears the selected item from the main model viewer silently. Whenever you apply a new synthesized image to the base-model, call `clearItemSilent()` for all item categories, followed by `updateCancelButtonsVisibility()` and `analyzeStyles()` to keep the UI clean.
 - **HUD 「vton渲染付費」警示引導區**：為了提升付費功能能見度，將原先在日誌動態滾動印出的「vton渲染付費」提示，移至 HUD 計時標題區下方作為常駐 Banner。採用 `.hud-payment-warning` 類別，字體加大（`0.85rem`），具金黃色霓虹效果，且移除原 `triggerGeminiQuickSynth()` 中的動態 `addHUDLine` 以免訊息重複。
 - **`modelFiles` 模特兒底圖陣列**：目前從資料夾 `穿搭照片/模特兒/` 中載入全部共 23 張模特兒底圖（型號包含 model1 到 model44）。主畫面上新增了半透明磨砂玻璃風格的左右切換按鈕（`.model-switch-btn`，`z-index: 25`），點選即可透過 `nextModel()` / `prevModel()` 和 `updateModelDisplay()` 進行順暢切換。
+- **Gemini 彈出視窗與焦點切換機制**：自動合成在螢幕中央開啟 `900x700` 尺寸的視窗展示 VESTIS 黑色讀取畫面。上傳完成並送出指令時，使用者腳本會對主視窗發送 `GEMINI_SENT` 訊息，促使主視窗調用 `window.focus()` 奪回焦點並將彈出視窗推至背景（防休眠運作中）。合成完畢後該視窗會透過 `window.close()` 自動關閉，不干擾使用者操作。
+
