@@ -3920,7 +3920,8 @@
         async function triggerGeminiQuickSynth() {
             startHUDLoading();
             addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
-            addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 250);
+            addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 200);
+            addHUDLine("💡 使用「一鍵多圖自動合成」需花費較多時間，如欲享受高速精緻畫質合成請改用「vton渲染付費」功能。", 300);
             
             showToast("🔮 正在進行一鍵多圖合成，若瀏覽器提示「下載多個檔案」，請點擊「允許」以利下載所有穿搭素材！");
             
@@ -4039,14 +4040,14 @@
             // 啟動雙向輪詢以獲取合成結果
             startResultPolling();
             addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
-            addHUDLine("💡 提示：請勿在前 5 秒上傳期間將新視窗最小化，送出指令後即可自由最小化！", 450);
+            addHUDLine("💡 提示：請勿在前 5 秒上傳期間將小視窗最小化，送出指令後即可自由最小化！", 450);
 
             setTimeout(() => {
                 addHUDLine("🚀 正在背景啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 開啟一個適中大小並精確定位於螢幕右下角的小視窗，避免遮擋中央主畫面操作，同時大小足夠不被瀏覽器凍結
-                const w = 420;
-                const h = 420;
+                // 開啟一個微型小視窗並精確定位於螢幕右下角，避免遮擋操作，尺寸為 120x120
+                const w = 120;
+                const h = 120;
                 const left = (window.screen.availWidth || window.screen.width) - w - 20;
                 const top = (window.screen.availHeight || window.screen.height) - h - 60;
                 
