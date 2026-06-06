@@ -4161,11 +4161,11 @@
             setTimeout(() => {
                 addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 開啟一個極小並精確定位於螢幕外 (例如 left=9999) 的微型視窗，搭配防休眠音訊，實現完全無感的背景自動合成
-                const w = 100;
-                const h = 100;
-                const left = 9999;
-                const top = 9999;
+                // 在螢幕中央開啟一個正常尺寸的視窗展示 VESTIS 讀取畫面，上傳完畢後再切換回主畫面
+                const w = 900;
+                const h = 700;
+                const left = Math.max(0, (window.screen.width - w) / 2);
+                const top = Math.max(0, (window.screen.height - h) / 2);
                 
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", 
@@ -4174,16 +4174,13 @@
                 );
                 
                 if (activeGeminiWindow) {
-                    activeGeminiWindow.blur();
-                    showToast("🚀 Gemini 智慧合成助手已在背景隱形啟動（防休眠運作中），合成僅需約 30-50 秒...");
+                    showToast("🚀 Gemini 智慧合成助手已啟動，正在處理素材上傳...");
                     addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
-                    addHUDLine("⏳ 請稍候，等待背景助手回傳合成結果 (預估需 30-50 秒)...", 800);
+                    addHUDLine("⏳ 正在自動傳輸素材並排入上傳佇列...", 800);
                 } else {
                     showToast("⚠️ 偵測到背景合成視窗被瀏覽器攔截！請在網址列右側點擊允許「彈出式視窗」以利自動合成！", "error");
                     addHUDLine("⚠️ 背景視窗被瀏覽器攔截！請允許彈出式視窗...", 500);
                 }
-                
-                if (window.focus) window.focus();
             }, downloadQueue.length * 400);
         }
 
@@ -4349,6 +4346,11 @@
                     addHUDLine("📤 影像素材傳送成功！正在等待 Gemini 背景上傳與送出...", 600);
                     startGeminiProgressHUD();
                 }
+            } else if (e.data && e.data.type === 'GEMINI_SENT') {
+                showToast("🚀 素材已送出！Gemini 正在背景進行合成，您可繼續在主畫面操作...");
+                addHUDLine("📤 影像素材與指令已成功送出！", 200);
+                addHUDLine("⏳ 背景合成中，主頁已重新取回焦點...", 400);
+                window.focus(); // 切換回主頁
             } else if (e.data && e.data.type === 'VESTIS_SYNTH_RESULT') {
                 showToast("📥 接收到 Gemini 自動回傳的合成圖片，載入中...");
                 addHUDLine("📥 接收到 Gemini 背景合成回傳圖片！正在載入主畫面...", 200);
