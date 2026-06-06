@@ -2,15 +2,19 @@
 
 ## Architecture
 
-Single-file monolith: `ai_outfit_prototype.html` (~3350 lines, 200KB).
-All HTML, CSS, JavaScript inline. No build, bundler, framework, or dependencies.
+Stateful VESTIS AI Try-on System consisting of:
+1. **Frontend Monolith:** `ai_outfit_prototype.html` (~3400 lines, 205KB). Contains all UI, CSS, and main logic. No build, bundler, or dependencies.
+2. **Local Relay Server:** `vestis_server.py` (Python HTTP server on port 8000). Serves static files and implements stateful endpoints (`/api/store_payload`, `/api/get_payload`, `/api/store_result`, `/api/get_result`) to bypass browser Cross-Origin-Opener-Policy (COOP) and CORS restrictions.
+3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.1). Automates Google Gemini Gem interface (`gemini.google.com`) for outfit synthesis, featuring recursive Shadow DOM selectors, simulated drag-and-drop file upload, and a response count guard.
 
 **Layout:** Three-column CSS Grid — `col-left` (wardrobe/upload), `col-main` (try-on display), `col-right` (profile/favorites/logs). Mobile ≤768px uses fixed bottom nav bar.
 
 **JS structure (single `<script>` block):**
-- VTON engine: `startVTON()`, `executeVTON()`, `mergeOutfitCanvas()`
-- Wardrobe: `render()`, `wearItem()`, `clearItem()`, `saveWardrobe()`, `initWardrobe()`
-- Face swap: `triggerFaceSwap()`, `generateDigitalTwin()`
+- VTON engines:
+  - Local/Classic API: `startVTON()`, `executeVTON()`, `mergeOutfitCanvas()`
+  - Gemini automation: `triggerGeminiQuickSynth()`, `startResultPolling()`, `loadSynthesizedImageFromBase64()`
+- Wardrobe & Drag-and-drop: `render()`, `wearItem()`, `clearItem()`, `processImage(..., shouldWear)`, `dz.ondrop`, `saveWardrobe()`, `initWardrobe()`
+- Face swap & Twin: `triggerFaceSwap()`, `generateDigitalTwin()`, `applyCurrentModelToQuickSynth()`
 - Weather: `initWeather()`, `updateWeatherByCity()` (Open-Meteo API)
 - Camera/upload: `triggerUpload()`, `openCamera()`, `openFaceCamera()`
 - Favorites/logs: `toggleFavorite()`, `findItemById()`, `openLogsModal()`
@@ -18,11 +22,11 @@ All HTML, CSS, JavaScript inline. No build, bundler, framework, or dependencies.
 ## Running
 
 ```bash
-python -m http.server 8000
+python vestis_server.py
 # Open http://localhost:8000/ai_outfit_prototype.html
 ```
 
-Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automates this.
+Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the `vestis_server.py` server.
 
 ## External APIs
 
@@ -31,6 +35,7 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automates this.
 - **BigDataCloud** (`api.bigdatacloud.net`): reverse geocode for city name.
 - **Google Shopping** (`google.com/search?tbm=shop`): purchase link redirects.
 - **GitHub raw** (`raw.githubusercontent.com/alexeygrigorev/clothing-dataset-small`): 90 web recommendation images. Uses `onerror` placeholder fallback at `render():2155-2163`.
+- **Gemini Gem Uploader / Local server endpoint** for auto-synthesis automation.
 
 ## State (all `localStorage`)
 
@@ -53,9 +58,9 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automates this.
 
 - **No tests, lint, or typecheck** — any syntax error breaks the entire app.
 - **`test.js` is NOT a test** — it's a scratch backup of copied functions.
-- **9 Node.js patch scripts** (`*.js` at root) target old path `D:/johnny-D/Gemini設計/AI穿搭/` (without `-Mimo`). They are NOT part of the app; run manually only. Multiple scripts redundantly modify `webBatches` and may conflict if run in sequence.
+- **9 Node.js patch scripts** (`*.js` at root) target old path `D:/johnny-D/Gemini設計/AI穿搭/` (without `-Mimo`). They are NOT part of the app; run manually only.
 - **`mergeOutfitCanvas()`** uses a 52% split line with 6% feathering. Image sources loaded with `crossOrigin="Anonymous"` — if the server lacks CORS headers, the merge fails. Wrap API results with `getBase64()` before merging to avoid this.
-- **`faceSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. `startVTON()` guards this: falls back to the base model image when null.
+- **`faceSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. It is reset to `null` on model switch (`nextModel()`) to ensure default models are used cleanly.
 - **Layer CSS** uses `right: 5%` for positioning (was `-36%`, which put items outside the viewport). If layers appear off-screen, check these values.
 - **Web items** are NOT in the `wardrobe[]` array — they live in `webBatches{}`. Use `findItemById()` (searches both) instead of `wardrobe.find()` for favorites and other cross-references.
 - **`getBase64()`** compresses images to max 768px at JPEG 0.8. fal.ai result URLs expire in minutes — always convert to base64 immediately.
@@ -65,3 +70,5 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automates this.
 - **`showToast()`** is the reusable toast mechanism — do not create ad-hoc toast `<div>` elements.
 - **Dark glass-morphism CSS** uses custom properties: `--bg-deep`, `--glass-bg`, `--accent`, `--cyan`. Responsive breakpoints: mobile ≤768px, tablet 769–1024px, desktop >1440px. Touch devices get `@media (hover: none)` treatment.
 - **Weather** falls back to `mockWeather` object with local background images when Open-Meteo fails.
+- **Tampermonkey duplicate scripts** will crash on TrustedHTML policies. Always delete old versions and ensure only the latest `v2.1` userscript is active.
+- **Gemini Auto-Synthesis Observer Guard:** The userscript uses a response count difference (`responses.length > initialResponseCount`) to ignore old generated images in chat history. If this count check is bypassed, the script will return the first historical synthesis image instead of waiting for the new one.

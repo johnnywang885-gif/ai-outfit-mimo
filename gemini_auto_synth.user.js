@@ -1,0 +1,440 @@
+// ==UserScript==
+// @name         VESTIS AI Gemini 穿搭合成助手自動化腳本
+// @namespace    http://tampermonkey.net/
+// @version      2.1
+// @description  自動化上傳 VESTIS 穿搭素材與提示詞至 Gemini 網頁前端，並自動將合成圖片帶回系統！
+// @author       Antigravity
+// @match        https://gemini.google.com/*
+// @grant        GM_xmlhttpRequest
+// @connect      googleusercontent.com
+// @connect      *
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // 確保只在最頂層視窗執行，避免在交叉域廣告或登入的子框架 (iframe) 中重疊執行
+    if (window.self !== window.top) {
+        return;
+    }
+
+    // 建立頂部美麗的黑玻璃懸浮狀態列
+    const bar = document.createElement('div');
+    bar.id = 'vestis-automation-bar';
+    bar.style.cssText = `
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(6, 182, 212, 0.3);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(6, 182, 212, 0.2);
+        padding: 10px 20px;
+        border-radius: 100px;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-family: system-ui, -apple-system, sans-serif;
+        color: #fff;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    `;
+
+    // 1. 標題
+    const titleSpan = document.createElement('span');
+    titleSpan.style.cssText = 'font-weight: 800; color: #06b6d4;';
+    titleSpan.textContent = '🧬 VESTIS AI 助手 v2.1';
+    bar.appendChild(titleSpan);
+
+    // 2. 狀態文字
+    const statusSpan = document.createElement('span');
+    statusSpan.id = 'vestis-status';
+    statusSpan.style.cssText = 'color: #cbd5e1;';
+    statusSpan.textContent = '🔌 正在等待 VESTIS 網頁端傳遞穿搭素材...';
+    bar.appendChild(statusSpan);
+
+    // 3. 手動帶回按鈕
+    const manualBtn = document.createElement('button');
+    manualBtn.id = 'vestis-btn-manual-get';
+    manualBtn.style.cssText = `
+        background: linear-gradient(135deg, #06b6d4, #0891b2);
+        color: white; border: none; padding: 4px 12px;
+        border-radius: 20px; cursor: pointer; font-size: 11px;
+        font-weight: 700; display: none;
+    `;
+    manualBtn.textContent = '📥 帶回最新合成圖';
+    bar.appendChild(manualBtn);
+
+    // 4. 關閉按鈕
+    const closeBtn = document.createElement('button');
+    closeBtn.id = 'vestis-btn-close';
+    closeBtn.style.cssText = `
+        background: transparent; color: #94a3b8; border: none;
+        cursor: pointer; font-size: 14px; font-weight: 700;
+    `;
+    closeBtn.textContent = '✕';
+    closeBtn.onclick = () => bar.remove();
+    bar.appendChild(closeBtn);
+
+    document.body.appendChild(bar);
+
+    function updateStatus(text, color = '#cbd5e1') {
+        const statusEl = document.getElementById('vestis-status');
+        if (statusEl) {
+            statusEl.innerText = text;
+            statusEl.style.color = color;
+        }
+    }
+
+    // 輔助：Base64 轉 File 物件
+    function base64ToFile(base64Data, filename) {
+        const arr = base64Data.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+    }
+
+    // 深度尋找 Shadow DOM 內部的元素
+    function querySelectorDeep(selector, root = document) {
+        const el = root.querySelector(selector);
+        if (el) return el;
+        
+        const allElements = root.querySelectorAll('*');
+        for (const host of allElements) {
+            if (host.shadowRoot) {
+                const found = querySelectorDeep(selector, host.shadowRoot);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+
+    // 尋找 Gemini 輸入框
+    function findInputBox() {
+        const richTextarea = document.querySelector('rich-textarea');
+        if (richTextarea && richTextarea.shadowRoot) {
+            const el = richTextarea.shadowRoot.querySelector('div[contenteditable="true"]') ||
+                       richTextarea.shadowRoot.querySelector('.ql-editor') ||
+                       richTextarea.shadowRoot.querySelector('textarea');
+            if (el) return el;
+        }
+        return querySelectorDeep('div[contenteditable="true"]') ||
+               querySelectorDeep('.ql-editor') ||
+               querySelectorDeep('textarea') ||
+               document.querySelector('rich-textarea div[contenteditable="true"]') ||
+               document.querySelector('[contenteditable="true"]');
+    }
+
+    // 尋找圖片上傳元素
+    function findFileInput() {
+        const richTextarea = document.querySelector('rich-textarea');
+        if (richTextarea && richTextarea.shadowRoot) {
+            const el = richTextarea.shadowRoot.querySelector('input[type="file"]') ||
+                       richTextarea.shadowRoot.querySelector('input[accept*="image"]');
+            if (el) return el;
+        }
+        return querySelectorDeep('input[type="file"]') ||
+               querySelectorDeep('input[accept*="image"]');
+    }
+
+    // 尋找送出按鈕
+    function findSendButton() {
+        const richTextarea = document.querySelector('rich-textarea');
+        if (richTextarea && richTextarea.shadowRoot) {
+            const el = richTextarea.shadowRoot.querySelector('button[aria-label="傳送訊息"]') ||
+                       richTextarea.shadowRoot.querySelector('button[aria-label="Send message"]') ||
+                       richTextarea.shadowRoot.querySelector('button.send-button');
+            if (el) return el;
+        }
+        return querySelectorDeep('button[aria-label="傳送訊息"]') ||
+               querySelectorDeep('button[aria-label="Send message"]') ||
+               querySelectorDeep('button.send-button') ||
+               querySelectorDeep('.send-button-container button') ||
+               querySelectorDeep('button:has(gux-icon[name="send"])') ||
+               querySelectorDeep('button:has(mat-icon)') ||
+               querySelectorDeep('button:has(.send-icon)') ||
+               querySelectorDeep('.send-icon') ||
+               querySelectorDeep('rich-textarea + button') ||
+               querySelectorDeep('rich-textarea ~ button');
+    }
+
+    // 輪詢等待元件載入的輔助函式
+    function pollElement(findFn, timeoutMs = 20000) {
+        return new Promise((resolve) => {
+            const start = Date.now();
+            const timer = setInterval(() => {
+                const el = findFn();
+                if (el) {
+                    clearInterval(timer);
+                    resolve(el);
+                } else if (Date.now() - start > timeoutMs) {
+                    clearInterval(timer);
+                    resolve(null);
+                }
+            }, 300);
+        });
+    }
+
+    // 監聽來自 VESTIS 的 postMessage 穿搭資料
+    window.addEventListener("message", async (event) => {
+        if (event.data && event.data.type === "VESTIS_DATA") {
+            updateStatus("📥 已成功接收穿搭素材，開始執行自動合成...", "#06b6d4");
+            try {
+                await automateWorkflow(event.data);
+            } catch (err) {
+                console.error("[VESTIS Automation] Error:", err);
+                updateStatus("❌ 自動填入失敗: " + err.message, "#f43f5e");
+            }
+        }
+    });
+
+    // 從本地伺服器讀取穿搭資料的 Fallback 函式
+    function fetchPayloadFromLocalServer() {
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "http://localhost:8000/api/get_payload",
+            onload: function(response) {
+                try {
+                    const data = JSON.parse(response.responseText);
+                    if (data && data.prompt && data.images) {
+                        updateStatus("📥 從本地伺服器成功獲取資料，開始自動合成...", "#06b6d4");
+                        automateWorkflow(data);
+                    } else {
+                        updateStatus("⚠️ 本地伺服器中沒有待處理的穿搭資料，請回 VESTIS 重新點擊。", "#eab308");
+                    }
+                } catch(e) {
+                    updateStatus("❌ 讀取本地伺服器資料失敗: " + e.message, "#f43f5e");
+                }
+            },
+            onerror: function(err) {
+                updateStatus("❌ 連接本地伺服器失敗，請確認伺服器已開啟。", "#f43f5e");
+            }
+        });
+    }
+
+    // 初始化與 VESTIS 網頁端的連線
+    async function initConnection() {
+        updateStatus("⏳ 正在等待 Gemini 網頁介面完全載入...", "#eab308");
+        
+        // 唯獨等待輸入框載入即可 (因為圖片上傳可以改走拖曳通道，不卡死於 uploader)
+        const inputEl = await pollElement(findInputBox, 20000);
+
+        if (!inputEl) {
+            updateStatus("❌ 載入逾時，找不到 Gemini 輸入框，請確認網頁完全載入並重試。", "#f43f5e");
+            return;
+        }
+
+        // 判斷 window.opener 能否通訊，否則改走本地伺服器
+        if (window.opener) {
+            updateStatus("🔗 已建立視窗連接，正向 VESTIS 要求穿搭資料...", "#22c55e");
+            window.opener.postMessage({ type: "GEMINI_READY" }, "*");
+        } else {
+            updateStatus("🌐 window.opener 為空 (COOP 限制)，正透過本地伺服器載入穿搭素材...", "#3b82f6");
+            fetchPayloadFromLocalServer();
+        }
+    }
+
+    // 啟動連線初始化
+    initConnection();
+
+    // 核心自動化流程
+    async function automateWorkflow(data) {
+        const { prompt, images } = data;
+
+        // 1. 填入提示詞
+        const inputBox = findInputBox();
+        if (!inputBox) {
+            throw new Error("找不到 Gemini 輸入框，請確認網頁已完全載入。");
+        }
+        inputBox.focus();
+        document.execCommand('insertText', false, prompt);
+        inputBox.dispatchEvent(new Event('input', { bubbles: true }));
+        updateStatus("📝 提示詞已輸入...", "#a855f7");
+
+        // 延遲 500ms 後進行圖片上傳，讓 Angular/React 框架完成狀態更新
+        await new Promise(r => setTimeout(r, 500));
+
+        // 2. 上傳所有圖片 (混和策略：優先使用 file input，否則採用雙重事件模擬：Paste 剪貼簿 + Drag/Drop 拖曳)
+        const fileInput = findFileInput();
+        const fileObjs = images.map(img => base64ToFile(img.src, img.filename));
+
+        if (fileInput) {
+            updateStatus("🖼️ 偵測到上傳入口，正在上傳 5 張穿搭素材...", "#eab308");
+            const dt = new DataTransfer();
+            for (const fileObj of fileObjs) {
+                dt.items.add(fileObj);
+            }
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            fileInput.dispatchEvent(new Event('input', { bubbles: true }));
+        } else {
+            updateStatus("🪂 未偵測到隱藏上傳入口，啟動雙重模擬拖曳/貼上上傳...", "#eab308");
+            
+            const dispatchUploadEvents = (target, files) => {
+                if (!target) return;
+                
+                // A. 模擬貼上 (Paste Event)
+                const cb = new DataTransfer();
+                for (const f of files) cb.items.add(f);
+                target.dispatchEvent(new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: cb
+                }));
+
+                // B. 模擬拖曳 (Drag/Drop Event)
+                const dt = new DataTransfer();
+                for (const f of files) dt.items.add(f);
+                target.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: dt }));
+                target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: dt }));
+                target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: dt }));
+            };
+
+            // 嘗試向多個潛在的目標元件派發上傳事件，實施地毯式覆蓋
+            dispatchUploadEvents(inputBox, fileObjs);
+            
+            const richTextarea = document.querySelector('rich-textarea');
+            if (richTextarea) {
+                dispatchUploadEvents(richTextarea, fileObjs);
+                if (richTextarea.shadowRoot) {
+                    dispatchUploadEvents(richTextarea.shadowRoot.querySelector('div[contenteditable="true"]'), fileObjs);
+                    dispatchUploadEvents(richTextarea.shadowRoot.querySelector('.textarea-wrapper'), fileObjs);
+                    dispatchUploadEvents(richTextarea.shadowRoot.querySelector('textarea'), fileObjs);
+                }
+            }
+            dispatchUploadEvents(document.body, fileObjs);
+        }
+
+        // 3. 等待圖片上傳完成 (一般大約 3-4 秒，視網速而定)
+        let secondsLeft = 4;
+        const countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft > 0) {
+                updateStatus(`⏳ 素材上傳中，預計 ${secondsLeft} 秒後送出...`, "#eab308");
+            } else {
+                clearInterval(countdownInterval);
+            }
+        }, 1000);
+
+        await new Promise(r => setTimeout(r, 4000));
+
+        // 4. 按下送出按鈕
+        const existingResponses = document.querySelectorAll('model-response, .model-response, message-content, .message-content');
+        initialResponseCount = existingResponses.length;
+        console.log("[VESTIS Automation] Initial response count set to:", initialResponseCount);
+
+        const sendBtn = findSendButton();
+        if (sendBtn) {
+            sendBtn.click();
+            updateStatus("🚀 已自動送出！正在等待 Gemini 進行智慧合成穿搭...", "#3b82f6");
+            startResultObserver();
+        } else {
+            updateStatus("⚠️ 未找到傳送按鈕，請手動按下 Enter 送出！", "#eab308");
+            startResultObserver();
+        }
+    }
+
+    // 觀察並偵測生成的合成圖片
+    function startResultObserver() {
+        const manualBtn = document.getElementById('vestis-btn-manual-get');
+        if (manualBtn) manualBtn.style.display = 'inline-block';
+
+        // 點擊手動帶回按鈕時的備用邏輯
+        document.getElementById('vestis-btn-manual-get').onclick = () => {
+            captureAndSendResult(true);
+        };
+
+        // 自動觀察 DOM 變化
+        const observer = new MutationObserver(() => {
+            captureAndSendResult(false);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    let resultSent = false;
+    let initialResponseCount = 999; // 預設高值，避免在送出前誤判歷史紀錄
+
+    // 擷取生成的最新圖片並送回
+    function captureAndSendResult(isManual = false) {
+        if (resultSent && !isManual) return;
+
+        // 尋找最後一個 model-response 或 message-content 中產生的 img
+        const responses = document.querySelectorAll('model-response, .model-response, message-content, .message-content');
+        if (responses.length === 0) return;
+        
+        // 確保目前回應數量大於送出前的數量，否則代表還是舊的歷史紀錄
+        if (responses.length <= initialResponseCount && !isManual) {
+            return;
+        }
+        
+        const latestResponse = responses[responses.length - 1];
+        
+        // 確保 Gemini 已經完成回答 (沒有正在載入或打字中)
+        const isGenerating = document.querySelector('mat-progress-bar, .query-in-progress, .generating');
+        if (isGenerating && !isManual) {
+            return; // 仍在生成中，先不截取
+        }
+
+        const img = latestResponse.querySelector('img');
+        if (!img || !img.src) return;
+
+        // 排除非合成圖像 (例如頭像或小圖標)
+        if (img.src.includes('avatar') || img.width < 100) return;
+
+        resultSent = true;
+        updateStatus("🎨 偵測到合成圖！正在安全帶回 VESTIS 系統...", "#22c55e");
+
+        // 使用 GM_xmlhttpRequest 避開 Google CDN 的 CORS 限制
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: img.src,
+            responseType: "arraybuffer",
+            onload: function(response) {
+                const blob = new Blob([response.response], { type: "image/png" });
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    const base64 = reader.result;
+                    
+                    // 1. 同時嘗試 window.opener postMessage 發送 (雙通道備用)
+                    if (window.opener) {
+                        try {
+                            window.opener.postMessage({ type: "VESTIS_SYNTH_RESULT", data: base64 }, "*");
+                        } catch(e) {}
+                    }
+                    
+                    // 2. 傳送到本地伺服器以供 VESTIS 輪詢接收
+                    GM_xmlhttpRequest({
+                        method: "POST",
+                        url: "http://localhost:8000/api/store_result",
+                        headers: { "Content-Type": "application/json" },
+                        data: JSON.stringify({ data: base64 }),
+                        onload: function() {
+                            updateStatus("🎉 合成圖已成功帶回 VESTIS 系統！本視窗即將自動關閉...", "#22c55e");
+                            setTimeout(() => {
+                                window.close();
+                            }, 2000);
+                        },
+                        onerror: function() {
+                            updateStatus("⚠️ 透過本地伺服器傳回失敗，請嘗試手動右鍵複製。", "#f43f5e");
+                            resultSent = false;
+                        }
+                    });
+                };
+                reader.readAsDataURL(blob);
+            },
+            onerror: function(err) {
+                console.error("[VESTIS Automation] Image fetch failed:", err);
+                updateStatus("❌ 獲取圖片失敗，請手動右鍵複製圖片帶回系統。", "#f43f5e");
+                resultSent = false; // 允許重試
+            }
+        });
+    }
+})();

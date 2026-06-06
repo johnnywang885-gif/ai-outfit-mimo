@@ -1112,7 +1112,7 @@
                 <h1 style="font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;">虛擬穿戴展示區</h1>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
-                    <button class="btn-settings" onclick="openQuickSynthModal()">📸 一鍵多圖合成</button>
+                    <button class="btn-settings" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
@@ -1769,6 +1769,9 @@
             baseImg.style.filter = 'none'; 
             document.getElementById('user-head').style.display = 'none'; 
             
+            // 重要：切換模特兒時清除人臉置換或合成產生的暫存，回歸全新選取的模特兒底圖
+            faceSwappedJpgUrl = null;
+            
             showToast(`切換至 模特兒 ${currentModelIndex + 1}`);
             setAIComment("<strong>已切換模特兒。</strong>您可以點擊「建立專屬數位分身」並執行人臉置換。");
         }
@@ -2318,6 +2321,21 @@
             }
         }
 
+        function findItemById(id) {
+            id = Number(id);
+            let item = wardrobe.find(i => i.id === id);
+            if (!item) {
+                for (const cat in webBatches) {
+                    const found = webBatches[cat].batches.flat().find(i => i.id === id);
+                    if (found) {
+                        item = found;
+                        break;
+                    }
+                }
+            }
+            return item;
+        }
+
         function toggleFavorite(id) {
             const idx = favorites.indexOf(id);
             if (idx > -1) { 
@@ -2327,7 +2345,7 @@
                 favorites.push(id); 
                 showToast("已加入我的收藏庫"); 
             }
-            const item = wardrobe.find(i => i.id === id);
+            const item = findItemById(id);
             if (item) showItemDetail(item);
             updateFavoritesUI();
         }
@@ -2347,7 +2365,7 @@
             }
             favList.innerHTML = '';
             favorites.forEach(id => {
-                const item = wardrobe.find(i => i.id === id);
+                const item = findItemById(id);
                 if (item) {
                     const div = document.createElement('div');
                     div.style.cssText = 'aspect-ratio:1; background:white; border-radius:12px; overflow:hidden; border:1px solid rgba(6, 182, 212, 0.2); cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; padding:5px;';
@@ -2390,7 +2408,7 @@
             }
         };
 
-        function processImage(dataUrl, name) {
+        function processImage(dataUrl, name, shouldWear = false) {
             const item = {
                 id: Date.now(),
                 cat: currentTab === "all" ? "top" : currentTab,
@@ -2403,6 +2421,9 @@
             saveWardrobe();
             render();
             showToast(`📸 單品 ${name} 已成功加入衣櫃`);
+            if (shouldWear) {
+                wearItem(item);
+            }
         }
 
         
@@ -2501,13 +2522,7 @@
             
             if (e.dataTransfer.getData('from_grid') === 'true') {
                 const id = parseInt(e.dataTransfer.getData('text'));
-                let item = wardrobe.find(i => i.id === id);
-                if (!item) {
-                    for (const cat in webBatches) {
-                        item = webBatches[cat].batches.flat().find(i => i.id === id);
-                        if (item) break;
-                    }
-                }
+                let item = findItemById(id);
                 if (item) { wearItem(item); }
                 return;
             }
@@ -2525,7 +2540,8 @@
                             }
                         });
                         if (matched) { render(); saveWardrobe(); showToast(`✨ 單品「${file.name}」已成功解鎖`); }
-                        processImage(dataUrl, file.name);
+                        // 自動將拖入的本地衣服圖片穿在模特兒身上
+                        processImage(dataUrl, file.name, true);
                     };
                     reader.readAsDataURL(file);
                     showToast("正在分析上傳檔案...");
@@ -3294,7 +3310,7 @@
 
         async function applyCurrentModelToQuickSynth() {
             try {
-                const baseImg = document.getElementById('base-img');
+                const baseImg = document.getElementById('base-model');
                 if (!baseImg || !baseImg.src) {
                     showToast('⚠️ 目前沒有載入任何模特兒', 'error');
                     return;
@@ -3650,6 +3666,361 @@
                 colMain.style.overflow = '';
             } else {
                 initMobileLayout();
+            }
+        });
+
+        function showGeminiWorkflowGuide() {
+            // 移除舊的指引
+            hideGeminiWorkflowGuide();
+
+            // 注入 CSS 動畫
+            if (!document.getElementById('gemini-guide-style')) {
+                const style = document.createElement('style');
+                style.id = 'gemini-guide-style';
+                style.textContent = `
+                    @keyframes fadeInSlideUp {
+                        from { opacity: 0; transform: translate(-50%, 20px); }
+                        to { opacity: 1; transform: translate(-50%, 0); }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            const guide = document.createElement('div');
+            guide.id = 'gemini-workflow-guide';
+            guide.style.cssText = `
+                position: fixed;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 90%;
+                max-width: 450px;
+                background: rgba(15, 23, 42, 0.95);
+                backdrop-filter: blur(15px);
+                border: 1px solid var(--accent);
+                border-radius: 16px;
+                padding: 16px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
+                z-index: 99999;
+                color: #fff;
+                font-family: inherit;
+                animation: fadeInSlideUp 0.4s ease-out;
+            `;
+
+            guide.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="color: var(--cyan); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                        📸 Gemini 穿搭合成助手自動化運作中
+                    </strong>
+                    <span style="cursor: pointer; font-size: 1.2rem; color: rgba(255,255,255,0.6);" onclick="hideGeminiWorkflowGuide()">&times;</span>
+                </div>
+                <div style="font-size: 0.8rem; line-height: 1.6; color: var(--text-p); margin-bottom: 12px; text-align: left;">
+                    <p style="margin: 4px 0; color: #22c55e;">🤖 <strong>極速全自動模式</strong>：如果您已安裝自動化腳本，系統將自動輸入提示詞、上傳圖片送出，並在生成後<strong>自動帶回合成結果</strong>並關閉視窗，無需手動操作！</p>
+                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(6, 182, 212, 0.3); padding: 12px; border-radius: 8px; margin: 8px 0; font-size: 0.75rem; text-align: left;">
+                        💡 <strong>自動化腳本安裝指引：</strong><br>
+                        <span style="color: #f43f5e; font-weight: bold;">⚠️ 提示：「無法從這網站新增應用程式...」是因為您尚未安裝下方 Tampermonkey 擴充套件，請務必先完成步驟 1。</span><br><br>
+                        <strong>步驟 1.</strong> 點此前往 Chrome 商店安裝 <a href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" style="color: #06b6d4; text-decoration: underline; font-weight: 800;">加到 Chrome ➔ 安裝 Tampermonkey 擴充功能</a>。<br><br>
+                        <strong>步驟 2 (推薦：自動安裝).</strong> 安裝完 Tampermonkey 後，直接點擊下方連結：<br>
+                        <a href="http://localhost:8000/gemini_auto_synth.user.js" target="_blank" style="display: block; text-align: center; margin: 6px 0; padding: 8px; background: linear-gradient(135deg, #0e7490, #0891b2); color: #fff; text-decoration: none; border-radius: 6px; font-weight: 800; border: 1px solid #06b6d4; box-shadow: 0 0 10px rgba(6,182,212,0.3);">⚡ 點我直接自動安裝 VESTIS 腳本</a>
+                        <em>(點擊後會自動彈出 Tampermonkey 安裝畫面，直接點擊「安裝」按鈕即可)</em><br><br>
+                        <strong>步驟 3 (備用：手動安裝).</strong> 若自動安裝無反應，請點擊下方按鈕複製腳本：<br>
+                        <button onclick="copyTampermonkeyScript()" class="btn-prime" style="padding: 6px 10px; font-size: 0.72rem; margin-top: 4px; margin-bottom: 4px; background: linear-gradient(135deg, var(--accent), #4338ca); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: 800;">📋 一鍵複製自動化腳本內容</button>
+                        複製後，在瀏覽器右上角點擊 Tampermonkey 圖示 ➔ 選擇「新增腳本 (Create a new script...)」 ➔ 把預設的程式碼全部刪除 ➔ 貼上 (Ctrl+V) ➔ 按 <strong>Ctrl + S 存檔</strong> 即可完成！
+                    </div>
+                    <p style="margin: 4px 0; color: #94a3b8; font-size: 0.72rem;">⚠️ 備份手動模式：若未安裝腳本，提示詞已複製、素材已下載，可在 Gemini 貼上送出，生成後點擊右鍵複製，回到此處貼上 (Ctrl+V) 即可帶回。</p>
+                </div>
+                <div style="text-align: right;">
+                    <button class="btn-prime" style="padding: 6px 12px; font-size: 0.75rem; margin-bottom: 0; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); box-shadow: none;" onclick="hideGeminiWorkflowGuide()">關閉指引面板</button>
+                </div>
+            `;
+            document.body.appendChild(guide);
+        }
+
+        function hideGeminiWorkflowGuide() {
+            const guide = document.getElementById('gemini-workflow-guide');
+            if (guide) {
+                guide.remove();
+            }
+        }
+
+        function copyTampermonkeyScript() {
+            fetch('/gemini_auto_synth.user.js')
+                .then(res => {
+                    if (!res.ok) throw new Error("讀取檔案失敗");
+                    return res.text();
+                })
+                .then(text => {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast("📋 自動化腳本內容已複製到您的剪貼簿！");
+                        showToast("💡 請點開瀏覽器 Tampermonkey ➔ 新增腳本 ➔ 貼上並按 Ctrl+S 存檔。");
+                    }).catch(err => {
+                        console.error(err);
+                        showToast("複製失敗，請手動開啟專案下的 gemini_auto_synth.user.js 檔案進行複製", "error");
+                    });
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("⚠️ 無法獲取本機服務腳本，請直接開啟本機 gemini_auto_synth.user.js 複製內容", "error");
+                });
+        }
+
+        async function triggerGeminiQuickSynth() {
+            showToast("🔮 正在進行一鍵多圖合成，若瀏覽器提示「下載多個檔案」，請點擊「允許」以利下載所有穿搭素材！");
+            
+            // 檢查主畫面上已選取的單品
+            const topEl = document.getElementById('view-top');
+            const outerwearEl = document.getElementById('view-outerwear');
+            const bottomEl = document.getElementById('view-bottom');
+            const shoesEl = document.getElementById('view-shoes');
+            const accessoryEl = document.getElementById('view-accessory');
+            const baseImg = document.getElementById('base-model');
+            
+            const isVisible = el => {
+                if (!el) return false;
+                const op = parseFloat(el.style.opacity);
+                if (isNaN(op) || op <= 0) return false;
+                const src = el.src || '';
+                return src.length > 10 && !src.endsWith('.html') && src !== window.location.href;
+            };
+
+            const downloadQueue = [];
+            let promptText = "請幫我將這幾張服裝、鞋子及配件照片完美合成到模特兒身上，生成一張逼真且自然的全身穿搭合成照。";
+
+            // 優先使用人臉置換/去背處理後的 base64 image 變數
+            let modelSrc = faceSwappedJpgUrl || (baseImg ? baseImg.src : null);
+            if (modelSrc) {
+                try {
+                    const base64 = await getBase64(modelSrc);
+                    downloadQueue.push({ src: base64, filename: "model.png" });
+                } catch (err) {
+                    console.warn('[downloadQueue] baseImg conversion failed, using fallback URL', err);
+                    downloadQueue.push({ src: modelSrc, filename: "model.png" });
+                }
+            }
+
+            const addMaterial = async (el, label, filename, categoryKey) => {
+                if (isVisible(el)) {
+                    let nameSuffix = "";
+                    const itemId = el.getAttribute('data-item-id');
+                    if (itemId) {
+                        const itemObj = findItemById(itemId);
+                        if (itemObj && itemObj.name) {
+                            nameSuffix = `（款式名稱：${itemObj.name}）`;
+                        }
+                    }
+                    try {
+                        const base64 = await getBase64(el.src);
+                        downloadQueue.push({ src: base64, filename: filename });
+                    } catch (err) {
+                        console.warn(`[downloadQueue] ${label} conversion failed, using fallback URL`, err);
+                        downloadQueue.push({ src: el.src, filename: filename });
+                    }
+                    promptText += `\n- ${label}的圖片已附上${nameSuffix}。`;
+                }
+            };
+
+            await addMaterial(topEl, "👕 上衣", "top.png", "top");
+            await addMaterial(outerwearEl, "🧥 外套", "outer.png", "outerwear");
+            await addMaterial(bottomEl, "👖 下著", "bottom.png", "bottom");
+            await addMaterial(shoesEl, "👟 鞋子", "shoes.png", "shoes");
+            await addMaterial(accessoryEl, "👒 配件/帽子", "accessory.png", "accessory");
+
+            promptText += "\n請注意保持人像比例，衣服、鞋子與配件位置要與人體完美貼合，並保持背景與光影融合自然，生成一張逼真且高畫質的穿搭照片。";
+
+            if (downloadQueue.length <= 1) {
+                showToast("⚠️ 請先在主畫面搭配服裝、鞋子或配件單品後再進行合成！", "warning");
+                return;
+            }
+
+            // A. 複製提示詞
+            try {
+                await navigator.clipboard.writeText(promptText);
+                showToast("📋 穿搭提示詞已自動複製到剪貼簿！");
+            } catch (err) {
+                const textarea = document.createElement('textarea');
+                textarea.value = promptText;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast("📋 穿搭提示詞已複製到剪貼簿！");
+            }
+
+            // B. 依序下載所有圖片，加微小延遲避免瀏覽器阻擋多檔下載
+            downloadQueue.forEach((item, index) => {
+                setTimeout(() => {
+                    const a = document.createElement('a');
+                    a.href = item.src;
+                    a.download = item.filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast(`📥 自動下載素材：${item.filename}`);
+                }, index * 400);
+            });
+
+            // C. 儲存傳輸資料並打開 Gemini 視窗
+            const payload = {
+                prompt: promptText,
+                images: downloadQueue
+            };
+            vestisPayloadForGemini = payload;
+
+            // 送存至本地伺服器，解決跨網域 COOP 造成 window.opener 為 null 的限制
+            fetch('/api/store_payload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                console.log('[VESTIS] Payload stored to local server successfully');
+            }).catch(err => {
+                console.error('[VESTIS] Failed to store payload to local server:', err);
+            });
+
+            // 啟動雙向輪詢以獲取合成結果
+            startResultPolling();
+
+            setTimeout(() => {
+                activeGeminiWindow = window.open("https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", "_blank");
+                showToast("🚀 已自動開啟 Gemini 穿搭合成助手並進行連線...");
+                showGeminiWorkflowGuide();
+            }, downloadQueue.length * 400);
+        }
+
+        function loadSynthesizedImage(file) {
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+                let dataUrl = ev.target.result;
+                loadSynthesizedImageFromBase64(dataUrl);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function loadSynthesizedImageFromBase64(dataUrl) {
+            try {
+                dataUrl = await getBase64(dataUrl);
+            } catch (err) {
+                console.warn(err);
+            }
+            
+            // 停止結果輪詢
+            stopResultPolling();
+            
+            // 1. 置換系統原圖模特兒
+            const mainBaseImg = document.getElementById('base-model');
+            mainBaseImg.src = dataUrl;
+            mainBaseImg.style.display = 'block';
+            mainBaseImg.style.filter = "drop-shadow(0 0 1px rgba(0,0,0,0.3))";
+            mainBaseImg.style.imageRendering = "smooth";
+            
+            faceSwappedJpgUrl = dataUrl;
+            
+            // 2. 清除主畫面的服裝與配件覆蓋層
+            clearItemSilent('top');
+            clearItemSilent('outerwear');
+            clearItemSilent('bottom');
+            clearItemSilent('shoes');
+            clearItemSilent('accessory');
+            
+            // 3. 更新風格分析面板與 AI 顧問意見為滿分完成狀態
+            document.getElementById('stat-formal').innerText = '100%';
+            document.getElementById('stat-formal-bar').style.width = '100%';
+            document.getElementById('stat-harmony').innerText = '98%';
+            document.getElementById('stat-harmony-bar').style.width = '98%';
+            setAIComment("<strong>🎉 已成功將 Gemini 線上自動合成圖帶回系統！</strong>模特兒已穿戴合成後的裝扮。您可以繼續在上面拖曳新配件或進行新搭配！");
+            
+            showToast("🎉 已成功將 Gemini 自動合成圖帶回系統並置換模特兒！");
+            hideGeminiWorkflowGuide();
+            
+            // 4. 加入穿搭日誌
+            const canvas = document.createElement('canvas');
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.src = dataUrl;
+            img.onload = () => {
+                const scale = Math.min(1, 260 / img.naturalWidth);
+                canvas.width = img.naturalWidth * scale;
+                canvas.height = img.naturalHeight * scale;
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                const thumbBase64 = canvas.toDataURL('image/jpeg', 0.65);
+                
+                outfitLogs.push({
+                    id: Date.now(),
+                    time: Date.now(),
+                    img: thumbBase64,
+                    fullImgUrl: dataUrl
+                });
+                if (outfitLogs.length > 10) outfitLogs.shift();
+                localStorage.setItem('vestis_outfit_log', JSON.stringify(outfitLogs));
+                initOutfitLog();
+            };
+        }
+
+        // 監聽來自 Gemini 自動化腳本的通訊 (雙通道：PostMessage + 本地 API 輪詢)
+        let activeGeminiWindow = null;
+        let vestisPayloadForGemini = null;
+        let resultPollingInterval = null;
+
+        function startResultPolling() {
+            if (resultPollingInterval) clearInterval(resultPollingInterval);
+            console.log('[VESTIS] Starting result polling from local server...');
+            
+            resultPollingInterval = setInterval(() => {
+                fetch('/api/get_result')
+                    .then(res => {
+                        if (!res.ok) throw new Error();
+                        return res.json();
+                    })
+                    .then(resData => {
+                        if (resData && resData.data) {
+                            showToast("📥 偵測到本地伺服器回傳合成圖片，載入中...");
+                            loadSynthesizedImageFromBase64(resData.data);
+                        }
+                    })
+                    .catch(err => {
+                        // 忽略輪詢期間的網路或找不到資料錯誤
+                    });
+            }, 2000);
+        }
+
+        function stopResultPolling() {
+            if (resultPollingInterval) {
+                clearInterval(resultPollingInterval);
+                resultPollingInterval = null;
+                console.log('[VESTIS] Result polling stopped.');
+            }
+        }
+
+        window.addEventListener('message', (e) => {
+            if (e.origin !== 'https://gemini.google.com') return;
+
+            if (e.data && e.data.type === 'GEMINI_READY') {
+                showToast("🔌 已連接到 Gemini 網頁自動化助手，正在傳送穿搭素材...");
+                if (activeGeminiWindow && vestisPayloadForGemini) {
+                    activeGeminiWindow.postMessage({
+                        type: 'VESTIS_DATA',
+                        prompt: vestisPayloadForGemini.prompt,
+                        images: vestisPayloadForGemini.images
+                    }, 'https://gemini.google.com');
+                }
+            } else if (e.data && e.data.type === 'VESTIS_SYNTH_RESULT') {
+                showToast("📥 接收到 Gemini 自動回傳的合成圖片，載入中...");
+                loadSynthesizedImageFromBase64(e.data.data);
+                activeGeminiWindow = null;
+                vestisPayloadForGemini = null;
+            }
+        });
+
+        // 監聽全局貼上事件，方便直接將 Gemini 的合成圖帶回
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    showToast("📥 偵測到剪貼簿圖片，正在帶回系統...");
+                    loadSynthesizedImage(file);
+                    break;
+                }
             }
         });
         
