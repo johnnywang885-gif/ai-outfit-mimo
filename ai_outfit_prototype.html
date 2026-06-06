@@ -3918,6 +3918,10 @@
         }
 
         async function triggerGeminiQuickSynth() {
+            startHUDLoading();
+            addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
+            addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 250);
+            
             showToast("🔮 正在進行一鍵多圖合成，若瀏覽器提示「下載多個檔案」，請點擊「允許」以利下載所有穿搭素材！");
             
             // 檢查主畫面上已選取的單品
@@ -4034,10 +4038,18 @@
 
             // 啟動雙向輪詢以獲取合成結果
             startResultPolling();
+            addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
 
             setTimeout(() => {
+                addHUDLine("🚀 正在背景啟動 Gemini 智慧穿搭合成助手...", 500);
                 activeGeminiWindow = window.open("https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", "_blank");
-                showToast("🚀 已自動開啟 Gemini 穿搭合成助手並進行連線...");
+                
+                // 嘗試將焦點帶回主畫面，實現背景執行的體驗
+                if (window.focus) window.focus();
+                
+                showToast("🚀 已自動開啟 Gemini 穿搭合成助手，正在背景進行智慧合成...");
+                addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
+                addHUDLine("⏳ 請稍候，等待背景助手回傳合成結果 (預估需 15-20 秒)...", 800);
             }, downloadQueue.length * 400);
         }
 
@@ -4057,8 +4069,10 @@
                 console.warn(err);
             }
             
-            // 停止結果輪詢
+            // 停止結果輪詢與關閉 HUD 動畫
             stopResultPolling();
+            stopHUDLoading();
+            stopGeminiProgressHUD();
             
             // 1. 置換系統原圖模特兒
             const mainBaseImg = document.getElementById('base-model');
@@ -4118,6 +4132,35 @@
         let vestisPayloadForGemini = null;
         let resultPollingInterval = null;
 
+        let geminiHUDInterval = null;
+        function startGeminiProgressHUD() {
+            if (geminiHUDInterval) clearInterval(geminiHUDInterval);
+            const messages = [
+                "⏳ Gemini 正在背景解析服飾部位與身體錨點...",
+                "🎨 正在進行智慧色彩拼貼與物理布料縫合...",
+                "⚡ Imagen 3 正在進行深度去背與像素降噪處理...",
+                "✨ 正在重組光影關係，細化衣物邊緣褶皺...",
+                "🔮 正在優化整體色彩飽和度與背景光影融合...",
+                "⏳ 正在進行最後的安全審查與合規過濾檢測..."
+            ];
+            let idx = 0;
+            geminiHUDInterval = setInterval(() => {
+                if (idx < messages.length) {
+                    addHUDLine(messages[idx], 400);
+                    idx++;
+                } else {
+                    addHUDLine("⏳ 伺服器運算中，請繼續耐心等候背景合成...", 500);
+                }
+            }, 3500);
+        }
+
+        function stopGeminiProgressHUD() {
+            if (geminiHUDInterval) {
+                clearInterval(geminiHUDInterval);
+                geminiHUDInterval = null;
+            }
+        }
+
         function startResultPolling() {
             if (resultPollingInterval) clearInterval(resultPollingInterval);
             console.log('[VESTIS] Starting result polling from local server...');
@@ -4131,6 +4174,8 @@
                     .then(resData => {
                         if (resData && resData.data) {
                             showToast("📥 偵測到本地伺服器回傳合成圖片，載入中...");
+                            addHUDLine("📥 偵測到本地伺服器回傳合成圖片！正在載入主畫面...", 200);
+                            stopGeminiProgressHUD();
                             loadSynthesizedImageFromBase64(resData.data);
                         }
                     })
@@ -4153,15 +4198,21 @@
 
             if (e.data && e.data.type === 'GEMINI_READY') {
                 showToast("🔌 已連接到 Gemini 網頁自動化助手，正在傳送穿搭素材...");
+                addHUDLine("🔌 已成功連接 Gemini 背景助手...", 200);
+                addHUDLine("📤 正在自動傳輸影像素材與提示詞指令...", 400);
                 if (activeGeminiWindow && vestisPayloadForGemini) {
                     activeGeminiWindow.postMessage({
                         type: 'VESTIS_DATA',
                         prompt: vestisPayloadForGemini.prompt,
                         images: vestisPayloadForGemini.images
                     }, 'https://gemini.google.com');
+                    addHUDLine("📤 影像素材傳送成功！正在等待 Gemini 背景上傳與送出...", 600);
+                    startGeminiProgressHUD();
                 }
             } else if (e.data && e.data.type === 'VESTIS_SYNTH_RESULT') {
                 showToast("📥 接收到 Gemini 自動回傳的合成圖片，載入中...");
+                addHUDLine("📥 接收到 Gemini 背景合成回傳圖片！正在載入主畫面...", 200);
+                stopGeminiProgressHUD();
                 loadSynthesizedImageFromBase64(e.data.data);
                 activeGeminiWindow = null;
                 vestisPayloadForGemini = null;
