@@ -4040,16 +4040,16 @@
             // 啟動雙向輪詢以獲取合成結果
             startResultPolling();
             addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
-            addHUDLine("💡 提示：請勿在前 5 秒上傳期間將小視窗最小化，送出指令後即可自由最小化！", 450);
+            addHUDLine("💡 提示：系統已啟用背景防休眠技術，將自動於螢幕外完全隱形執行...", 450);
 
             setTimeout(() => {
-                addHUDLine("🚀 正在背景啟動 Gemini 智慧穿搭合成助手...", 500);
+                addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 開啟一個微型小視窗並精確定位於螢幕右下角，避免遮擋操作，尺寸為 120x120
+                // 開啟一個極小並精確定位於螢幕外 (例如 left=3000) 的微型視窗，搭配防休眠音訊，實現完全無感的背景自動合成
                 const w = 120;
                 const h = 120;
-                const left = (window.screen.availWidth || window.screen.width) - w - 20;
-                const top = (window.screen.availHeight || window.screen.height) - h - 60;
+                const left = 3000;
+                const top = 3000;
                 
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", 
@@ -4059,7 +4059,7 @@
                 
                 if (activeGeminiWindow) {
                     activeGeminiWindow.blur();
-                    showToast("🚀 Gemini 穿搭助手已在右下角開啟，請勿在前 5 秒內將其最小化，待上傳送出後即可將其最小化或置於背景。");
+                    showToast("🚀 Gemini 智慧合成助手已在背景隱形啟動（防休眠運作中），合成僅需約 30-50 秒...");
                     addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
                     addHUDLine("⏳ 請稍候，等待背景助手回傳合成結果 (預估需 30-50 秒)...", 800);
                 } else {

@@ -338,12 +338,37 @@
         }
     }
 
+    // 啟動靜音音訊播放，欺騙瀏覽器該分頁正有音訊活動，從而免除 Chromium 對背景分頁的計時器與 CPU 限制 (Tab Throttling)
+    function startSilentAudio() {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            
+            // 建立一個持續播放的極微弱振盪器，幾乎為靜音但足以讓瀏覽器標記為有音訊活動
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            osc.start();
+            console.log("[VESTIS] Background silent audio activated successfully.");
+            
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+        } catch (err) {
+            console.warn("[VESTIS] Background silent audio activation failed:", err);
+        }
+    }
+
     // 啟動連線初始化
     async function startApp() {
         while (!document.body) {
             await new Promise(r => setTimeout(r, 30));
         }
         initUI();
+        startSilentAudio();
         initConnection();
     }
     startApp();
