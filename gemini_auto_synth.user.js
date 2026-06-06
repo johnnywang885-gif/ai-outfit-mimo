@@ -247,6 +247,10 @@
 
     // 核心自動化流程
     async function automateWorkflow(data) {
+        // 重置狀態，確保多次執行自動合成時能夠正確捕捉最新生成的圖片
+        resultSent = false;
+        initialResponseCount = 999;
+
         const { prompt, images } = data;
 
         // 1. 填入提示詞
@@ -313,7 +317,7 @@
             dispatchUploadEvents(document.body, fileObjs);
         }
 
-        // 3. 等待圖片上傳完成 (一般大約 3-4 秒，視網速而定)
+        // 3. 等待圖片上傳完成 (多圖上傳，設為 4 秒以防漏圖)
         let secondsLeft = 4;
         const countdownInterval = setInterval(() => {
             secondsLeft--;

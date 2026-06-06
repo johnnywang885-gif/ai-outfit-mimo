@@ -1434,9 +1434,12 @@
                 <div class="clipping-preview" style="height: 420px; background: #000; border-radius: 20px;">
                     <img id="vton-result-img" style="width: 100%; height: 100%; object-fit: contain; border-radius: 12px;">
                 </div>
-                <div style="margin-top: 1.5rem; display: flex; gap: 12px;">
-                    <button class="btn-prime" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); flex: 1; margin-bottom: 0;" onclick="document.getElementById('vton-overlay').style.display='none'">關閉視窗</button>
-                    <button class="btn-prime" style="flex: 2; background: var(--success); margin-bottom: 0; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);" onclick="downloadVTONResult()">💾 下載並收藏日誌</button>
+                <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-prime" style="background: linear-gradient(135deg, var(--accent), var(--cyan)); color: white; margin-bottom: 0; font-weight: 800; box-shadow: 0 4px 15px rgba(99,102,241,0.4); padding: 12px;" onclick="applyVTONResultToMain()">✨ 套用至主畫面並收藏</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-prime" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); flex: 1; margin-bottom: 0;" onclick="document.getElementById('vton-overlay').style.display='none'">關閉視窗</button>
+                        <button class="btn-prime" style="flex: 1.2; background: var(--success); margin-bottom: 0; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);" onclick="downloadVTONResult()">💾 僅下載並收藏</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2302,6 +2305,16 @@
                 updateCancelButtonsVisibility();
                 showToast(`🧹 已取下「${catLabels[cat] || cat}」`);
                 analyzeStyles();
+            }
+        }
+
+        function clearItemSilent(cat) {
+            const layer = document.getElementById(`view-${cat}`);
+            if (layer) {
+                layer.style.opacity = '0';
+                layer.removeAttribute('data-item-id');
+                layer.src = '';
+                layer.removeAttribute('src');
             }
         }
 
@@ -3277,6 +3290,59 @@
             }
         }
 
+        async function applyVTONResultToMain() {
+            try {
+                const imgEl = document.getElementById('vton-result-img');
+                if (!imgEl || !imgEl.src) {
+                    showToast("⚠️ 無法獲取合成圖片，無法套用", "error");
+                    return;
+                }
+                
+                const dataUrl = imgEl.src;
+                
+                // 1. 置換系統原圖模特兒
+                const mainBaseImg = document.getElementById('base-model');
+                if (mainBaseImg) {
+                    mainBaseImg.src = dataUrl;
+                    mainBaseImg.style.display = 'block';
+                    mainBaseImg.style.filter = "drop-shadow(0 0 1px rgba(0,0,0,0.3))";
+                    mainBaseImg.style.imageRendering = "smooth";
+                }
+                
+                // 重要：不要用合成衣物後的照片覆蓋乾淨的人臉置換底圖，否則第二次一鍵合成會包含舊衣服
+                // faceSwappedJpgUrl = dataUrl;
+                
+                // 2. 清除主畫面的服裝與配件覆蓋層
+                clearItemSilent('top');
+                clearItemSilent('outerwear');
+                clearItemSilent('bottom');
+                clearItemSilent('shoes');
+                clearItemSilent('accessory');
+                updateCancelButtonsVisibility();
+                analyzeStyles();
+                
+                // 3. 更新風格分析面板
+                const formalVal = document.getElementById('stat-formal');
+                if (formalVal) formalVal.innerText = '100%';
+                const formalBar = document.getElementById('stat-formal-bar');
+                if (formalBar) formalBar.style.width = '100%';
+                const harmonyVal = document.getElementById('stat-harmony');
+                if (harmonyVal) harmonyVal.innerText = '98%';
+                const harmonyBar = document.getElementById('stat-harmony-bar');
+                if (harmonyBar) harmonyBar.style.width = '98%';
+                
+                setAIComment("<strong>🎉 已成功套用 AI 穿搭合成圖至主畫面！</strong>模特兒已穿戴合成後的裝扮。您可以繼續在上面拖曳新配件或進行新搭配！");
+                
+                // 4. 同步進行下載與日誌保存
+                await downloadVTONResult();
+                
+                showToast("🎉 成功套用穿搭至主畫面並收藏至日誌！");
+            } catch (err) {
+                console.error("Apply VTON Result Error:", err);
+                showToast("套用失敗: " + err.message, "error");
+            }
+        }
+
         // --- GLOBAL INITIALIZATION ---
         initWardrobe();
         initWeather();
@@ -3316,7 +3382,9 @@
                     return;
                 }
                 showToast('⏳ 正在讀取目前模特兒基底...');
-                const b64 = await getBase64(baseImg.src);
+                // 優先使用乾淨的底圖，避免帶入已經穿著合成衣物的模特兒
+                const cleanSrc = faceSwappedJpgUrl || modelFiles[currentModelIndex] || baseImg.src;
+                const b64 = await getBase64(cleanSrc);
                 const preview = document.getElementById('qs-preview-person');
                 const placeholder = document.getElementById('qs-placeholder-person');
                 preview.src = b64;
@@ -3453,6 +3521,90 @@
             }
         }
 
+        function generateCollageImage(modelSrc, topSrc, outerwearSrc, bottomSrc, shoesSrc, accessorySrc) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = 768;
+                canvas.height = 1024;
+                const ctx = canvas.getContext('2d');
+                
+                const loadImage = (src) => {
+                    return new Promise((res) => {
+                        if (!src) { res(null); return; }
+                        const img = new Image();
+                        img.crossOrigin = "Anonymous";
+                        img.onload = () => res(img);
+                        img.onerror = () => res(null);
+                        img.src = src;
+                    });
+                };
+
+                Promise.all([
+                    loadImage(modelSrc),
+                    loadImage(topSrc),
+                    loadImage(outerwearSrc),
+                    loadImage(bottomSrc),
+                    loadImage(shoesSrc),
+                    loadImage(accessorySrc)
+                ]).then(([imgModel, imgTop, imgOuter, imgBottom, imgShoes, imgAccessory]) => {
+                    // 1. 繪製模特兒底圖
+                    if (imgModel) {
+                        ctx.drawImage(imgModel, 0, 0, canvas.width, canvas.height);
+                    } else {
+                        ctx.fillStyle = '#0f172a';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+
+                    // 2. 繪製下著 (褲子/裙子) - Y軸佔 50% - 85%, 寬度約 45%
+                    if (imgBottom) {
+                        const w = canvas.width * 0.45;
+                        const h = canvas.height * 0.35;
+                        const x = (canvas.width - w) / 2;
+                        const y = canvas.height * 0.50;
+                        ctx.drawImage(imgBottom, x, y, w, h);
+                    }
+
+                    // 3. 繪製上衣 (上衣/T恤) - Y軸佔 22% - 56%, 寬度約 52%
+                    if (imgTop) {
+                        const w = canvas.width * 0.52;
+                        const h = canvas.height * 0.35;
+                        const x = (canvas.width - w) / 2;
+                        const y = canvas.height * 0.22;
+                        ctx.drawImage(imgTop, x, y, w, h);
+                    }
+
+                    // 4. 繪製外套 (蓋在上衣上面) - Y軸佔 20% - 58%, 寬度約 56%
+                    if (imgOuter) {
+                        const w = canvas.width * 0.56;
+                        const h = canvas.height * 0.38;
+                        const x = (canvas.width - w) / 2;
+                        const y = canvas.height * 0.20;
+                        ctx.drawImage(imgOuter, x, y, w, h);
+                    }
+
+                    // 5. 繪製鞋子 - Y軸佔 80% - 98%, 寬度約 40%
+                    if (imgShoes) {
+                        const w = canvas.width * 0.40;
+                        const h = canvas.height * 0.16;
+                        const x = (canvas.width - w) / 2;
+                        const y = canvas.height * 0.82;
+                        ctx.drawImage(imgShoes, x, y, w, h);
+                    }
+
+                    // 6. 繪製配件 (帽子/頭飾等) - Y軸佔 2% - 18%, 寬度約 26%
+                    if (imgAccessory) {
+                        const w = canvas.width * 0.26;
+                        const h = canvas.height * 0.16;
+                        const x = (canvas.width - w) / 2;
+                        const y = canvas.height * 0.02;
+                        ctx.drawImage(imgAccessory, x, y, w, h);
+                    }
+
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                });
+            });
+        }
+
         function overlayShoesOnCanvas(baseImgDataUrl, shoesImgDataUrl) {
             return new Promise((resolve, reject) => {
                 const imgBase = new Image();
@@ -3510,14 +3662,15 @@
             showToast("🔮 正在進行 AI 一鍵多圖穿搭合成...");
 
             try {
-                const personBase64 = personPreview.src;
-                const topBase64 = topPreview.src;
+                addHUDLine("✨ [Step 1] 正在壓縮並準備穿搭素材...", 100);
+                const personBase64 = await getBase64(personPreview.src);
+                const topBase64 = await getBase64(topPreview.src);
                 const hasBottom = bottomPreview && bottomPreview.style.display !== 'none' && bottomPreview.src;
-                const bottomBase64 = hasBottom ? bottomPreview.src : null;
+                const bottomBase64 = hasBottom ? await getBase64(bottomPreview.src) : null;
                 const hasShoes = shoesPreview && shoesPreview.style.display !== 'none' && shoesPreview.src;
-                const shoesBase64 = hasShoes ? shoesPreview.src : null;
+                const shoesBase64 = hasShoes ? await getBase64(shoesPreview.src) : null;
 
-                addHUDLine("✨ [Step 1] 開始一鍵快速穿搭合成處理...", 100);
+                addHUDLine("✨ 穿搭素材準備完成，開始一鍵快速穿搭合成處理...", 150);
 
                 const renderTasks = [];
                 addHUDLine("🔄 正在平行調度 fal.ai 虛擬穿戴引擎...", 300);
@@ -3784,10 +3937,12 @@
             };
 
             const downloadQueue = [];
-            let promptText = "請幫我將這幾張服裝、鞋子及配件照片完美合成到模特兒身上，生成一張逼真且自然的全身穿搭合成照。";
+            // 逼迫 Gemini 跳過文字打字，直接出圖！
+            let promptText = "【重要指令：不要輸出任何文字對話與解釋，直接生成並顯示穿搭合成圖片】\n" +
+                             "請幫我將這幾張服裝、鞋子及配件照片完美合成到模特兒身上，生成一張逼真且自然的全身穿搭合成照。";
 
-            // 優先使用人臉置換/去背處理後的 base64 image 變數
-            let modelSrc = faceSwappedJpgUrl || (baseImg ? baseImg.src : null);
+            // 優先使用乾淨的模特兒底圖（有數位分身用分身，無則用預設乾淨模特兒），避免疊加上一次合成好的衣物
+            let modelSrc = faceSwappedJpgUrl || modelFiles[currentModelIndex] || (baseImg ? baseImg.src : null);
             if (modelSrc) {
                 try {
                     const base64 = await getBase64(modelSrc);
@@ -3798,7 +3953,7 @@
                 }
             }
 
-            const addMaterial = async (el, label, filename, categoryKey) => {
+            const addMaterial = async (el, label, filename) => {
                 if (isVisible(el)) {
                     let nameSuffix = "";
                     const itemId = el.getAttribute('data-item-id');
@@ -3819,11 +3974,11 @@
                 }
             };
 
-            await addMaterial(topEl, "👕 上衣", "top.png", "top");
-            await addMaterial(outerwearEl, "🧥 外套", "outer.png", "outerwear");
-            await addMaterial(bottomEl, "👖 下著", "bottom.png", "bottom");
-            await addMaterial(shoesEl, "👟 鞋子", "shoes.png", "shoes");
-            await addMaterial(accessoryEl, "👒 配件/帽子", "accessory.png", "accessory");
+            await addMaterial(topEl, "👕 上衣", "top.png");
+            await addMaterial(outerwearEl, "🧥 外套", "outer.png");
+            await addMaterial(bottomEl, "👖 下著", "bottom.png");
+            await addMaterial(shoesEl, "👟 鞋子", "shoes.png");
+            await addMaterial(accessoryEl, "👒 配件/帽子", "accessory.png");
 
             promptText += "\n請注意保持人像比例，衣服、鞋子與配件位置要與人體完美貼合，並保持背景與光影融合自然，生成一張逼真且高畫質的穿搭照片。";
 
@@ -3859,7 +4014,7 @@
                 }, index * 400);
             });
 
-            // C. 儲存傳輸資料並打開 Gemini 視窗
+            // C. 儲存傳輸資料並準備打開 Gemini
             const payload = {
                 prompt: promptText,
                 images: downloadQueue
@@ -3883,7 +4038,6 @@
             setTimeout(() => {
                 activeGeminiWindow = window.open("https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all", "_blank");
                 showToast("🚀 已自動開啟 Gemini 穿搭合成助手並進行連線...");
-                showGeminiWorkflowGuide();
             }, downloadQueue.length * 400);
         }
 
@@ -3913,7 +4067,8 @@
             mainBaseImg.style.filter = "drop-shadow(0 0 1px rgba(0,0,0,0.3))";
             mainBaseImg.style.imageRendering = "smooth";
             
-            faceSwappedJpgUrl = dataUrl;
+            // 重要：不要用自動合成後的照片覆蓋乾淨的臉部置換底圖，否則第二次一鍵合成會包含舊衣服
+            // faceSwappedJpgUrl = dataUrl;
             
             // 2. 清除主畫面的服裝與配件覆蓋層
             clearItemSilent('top');
@@ -3921,6 +4076,8 @@
             clearItemSilent('bottom');
             clearItemSilent('shoes');
             clearItemSilent('accessory');
+            updateCancelButtonsVisibility();
+            analyzeStyles();
             
             // 3. 更新風格分析面板與 AI 顧問意見為滿分完成狀態
             document.getElementById('stat-formal').innerText = '100%';

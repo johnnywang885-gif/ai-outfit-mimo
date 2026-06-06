@@ -60,7 +60,7 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **`test.js` is NOT a test** — it's a scratch backup of copied functions.
 - **9 Node.js patch scripts** (`*.js` at root) target old path `D:/johnny-D/Gemini設計/AI穿搭/` (without `-Mimo`). They are NOT part of the app; run manually only.
 - **`mergeOutfitCanvas()`** uses a 52% split line with 6% feathering. Image sources loaded with `crossOrigin="Anonymous"` — if the server lacks CORS headers, the merge fails. Wrap API results with `getBase64()` before merging to avoid this.
-- **`faceSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. It is reset to `null` on model switch (`nextModel()`) to ensure default models are used cleanly.
+- **`faceSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. It is reset to `null` on model switch (`nextModel()`) to ensure default models are used cleanly. Do NOT overwrite it with final VTON synthesized images, ensuring subsequent try-ons always use clean, garment-free model bases.
 - **Layer CSS** uses `right: 5%` for positioning (was `-36%`, which put items outside the viewport). If layers appear off-screen, check these values.
 - **Web items** are NOT in the `wardrobe[]` array — they live in `webBatches{}`. Use `findItemById()` (searches both) instead of `wardrobe.find()` for favorites and other cross-references.
 - **`getBase64()`** compresses images to max 768px at JPEG 0.8. fal.ai result URLs expire in minutes — always convert to base64 immediately.
@@ -72,3 +72,4 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **Weather** falls back to `mockWeather` object with local background images when Open-Meteo fails.
 - **Tampermonkey duplicate scripts** will crash on TrustedHTML policies. Always delete old versions and ensure only the latest `v2.1` userscript is active.
 - **Gemini Auto-Synthesis Observer Guard:** The userscript uses a response count difference (`responses.length > initialResponseCount`) to ignore old generated images in chat history. If this count check is bypassed, the script will return the first historical synthesis image instead of waiting for the new one.
+- **`clearItemSilent(cat)`** clears the selected item from the main model viewer silently. Whenever you apply a new synthesized image to the base-model, call `clearItemSilent()` for all item categories, followed by `updateCancelButtonsVisibility()` and `analyzeStyles()` to keep the UI clean.
