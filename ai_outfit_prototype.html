@@ -1956,6 +1956,20 @@
             // 重要：切換模特兒時清除人臉置換或合成產生的暫存，回歸全新選取的模特兒底圖
             faceSwappedJpgUrl = null;
             
+            // Sync outfit state back to only active overlays since the underlying VTON merge is discarded
+            categories.forEach(c => {
+                const layer = document.getElementById(`view-${c}`);
+                if (layer && (layer.style.opacity === '1' || layer.getAttribute('data-item-id'))) {
+                    const itemId = layer.getAttribute('data-item-id');
+                    if (itemId) {
+                        currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = findItemById(itemId);
+                    }
+                } else {
+                    currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = null;
+                }
+            });
+            analyzeStyles();
+            
             showToast(`切換至 模特兒 ${currentModelIndex + 1}`);
             setAIComment("<strong>已切換模特兒。</strong>您可以點擊「建立專屬數位分身」並執行人臉置換。");
         }
@@ -2298,6 +2312,69 @@
         let categories = ["top", "outerwear", "bottom", "shoes", "accessory"];
         let lastClippedUrl = "", stream = null, faceStream = null, favorites = [];
         let currentTab = "top"; // Default to top, the user asked to fix the tab!
+        
+        let currentMannequinOutfit = { top: null, outerwear: null, bottom: null, shoes: null, accessory: null };
+
+        function getAIRecommendation(currentOutfit) {
+            const equippedCats = [];
+            for (const cat in currentOutfit) {
+                if (currentOutfit[cat]) {
+                    equippedCats.push(cat);
+                }
+            }
+
+            if (equippedCats.length === 0) {
+                const defaultRec = findItemById(4021) || defaultWardrobe[0];
+                const purchaseUrl = defaultRec.link || `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(defaultRec.name)}`;
+                return `
+                    <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
+                        <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                            <img src="${defaultRec.img}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                        </div>
+                        <div style="flex: 1; text-align: left;">
+                            <div style="font-weight: 800; font-size: 0.9rem; color: var(--cyan); margin-bottom: 4px;">✨ AI 美學單品推薦</div>
+                            <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 6px 0;">
+                                您目前尚未搭配單品。AI 推薦您試試這款高訂質感 **${defaultRec.name}**，百搭剪裁適合各種場合！
+                            </p>
+                            <a href="${purchaseUrl}" target="_blank" style="display: inline-block; font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買此推薦單品 ➔</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const targetCat = equippedCats[0];
+            const currentItem = currentOutfit[targetCat];
+
+            let alternatives = wardrobe.filter(i => i.cat === targetCat && i.id !== currentItem.id);
+            if (alternatives.length === 0) {
+                if (webBatches[targetCat]) {
+                    alternatives = webBatches[targetCat].batches.flat().filter(i => i.id !== currentItem.id);
+                }
+            }
+
+            if (alternatives.length === 0) {
+                alternatives = [currentItem];
+            }
+
+            const recIndex = Math.abs(currentItem.id) % alternatives.length;
+            const recItem = alternatives[recIndex];
+            const purchaseUrl = recItem.link || `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(recItem.name)}`;
+
+            return `
+                <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
+                    <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                        <img src="${recItem.img}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                    </div>
+                    <div style="flex: 1; text-align: left;">
+                        <div style="font-weight: 800; font-size: 0.9rem; color: var(--cyan); margin-bottom: 4px;">✨ AI 美學替換推薦</div>
+                        <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 6px 0;">
+                            建議將當前穿戴的 **${currentItem.name || catLabels[targetCat]}** 替換為 **${recItem.name}**。此單品的剪裁與配色能與您的其他服飾形成更有層次的視覺光澤，提升整體品味。
+                        </p>
+                        <a href="${purchaseUrl}" target="_blank" style="display: inline-block; font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買此推薦單品 ➔</a>
+                    </div>
+                </div>
+            `;
+        }
 
         function switchSidebarTab(tabName) {
             const panels = ['sidebar-wardrobe-panel', 'sidebar-twin-panel', 'sidebar-assets-panel'];
@@ -2513,6 +2590,9 @@
                 layer.src = '';
                 layer.removeAttribute('src'); // 徹底清除 src 避免 startsWith('http') 誤判
                 
+                // Update outfit state
+                currentMannequinOutfit[cat === 'outerwear' ? 'outerwear' : cat] = null;
+                
                 updateCancelButtonsVisibility();
                 showToast(`🧹 已取下「${catLabels[cat] || cat}」`);
                 analyzeStyles();
@@ -2537,6 +2617,10 @@
                 layer.src = item.img;
                 layer.style.opacity = '1';
                 layer.setAttribute('data-item-id', String(item.id));
+                
+                // Update outfit state
+                currentMannequinOutfit[item.cat === 'outerwear' ? 'outerwear' : item.cat] = item;
+                
                 showToast(`✅ 已穿戴「${catLabels[item.cat]}：${item.name || ''}」`);
                 
                 updateCancelButtonsVisibility();
@@ -3110,14 +3194,20 @@
                 return src.length > 50 && !src.endsWith('.html') && src !== window.location.href;
             };
 
+            const hasTop = isItemEquipped(topEl) || (currentMannequinOutfit.top !== null);
+            const hasOuter = isItemEquipped(outerEl) || (currentMannequinOutfit.outerwear !== null);
+            const hasBottom = isItemEquipped(botEl) || (currentMannequinOutfit.bottom !== null);
+            const hasShoes = isItemEquipped(shoesEl) || (currentMannequinOutfit.shoes !== null);
+            const hasAcc = isItemEquipped(accEl) || (currentMannequinOutfit.accessory !== null);
+
             let formal = 0;
             let harmony = 0;
 
-            if (isItemEquipped(topEl)) { formal += 20; harmony += 15; }
-            if (isItemEquipped(outerEl)) { formal += 30; harmony += 15; }
-            if (isItemEquipped(botEl)) { formal += 20; harmony += 15; }
-            if (isItemEquipped(shoesEl)) { formal += 20; harmony += 15; }
-            if (isItemEquipped(accEl)) { formal += 10; harmony += 20; }
+            if (hasTop) { formal += 20; harmony += 15; }
+            if (hasOuter) { formal += 30; harmony += 15; }
+            if (hasBottom) { formal += 20; harmony += 15; }
+            if (hasShoes) { formal += 20; harmony += 15; }
+            if (hasAcc) { formal += 10; harmony += 20; }
 
             if (formal === 0 && harmony === 0) {
                 document.getElementById('stat-formal').innerText = '--';
@@ -3131,6 +3221,12 @@
 
             formal = Math.min(100, Math.max(10, formal + Math.floor(Math.random() * 15)));
             harmony = Math.min(100, Math.max(10, harmony + Math.floor(Math.random() * 20)));
+
+            const isVTONActive = document.getElementById('base-model').src.startsWith('data:');
+            if (isVTONActive) {
+                formal = Math.min(100, formal + 10);
+                harmony = Math.min(100, harmony + 12);
+            }
 
             document.getElementById('stat-formal').innerText = formal + '%';
             document.getElementById('stat-formal-bar').style.width = formal + '%';
@@ -3173,9 +3269,11 @@
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.25rem; border-radius: 18px;">
                     <div style="font-weight: 800; font-size: 1rem; color: var(--cyan); margin-bottom: 8px;">💡 VESTIS 智慧美學總評</div>
                     <p style="font-size: 0.85rem; color: var(--text-p); line-height: 1.6; margin: 0;">
-                        目前的搭配展現了極高的設計感。${isItemEquipped(topEl) && isItemEquipped(botEl) ? '上衣的輪廓與下身線條完美融合，再結合當下的氣候實景，散發出成熟洗練的都市時尚態度。' : '您可以繼續添加其他單品（如外套、鞋款或背包配件）來豐富這套造型的層次感！'}
+                        目前的搭配展現了極高的設計感。${hasTop && hasBottom ? '上衣的輪廓與下身線條完美融合，再結合當下的氣候實景，散發出成熟洗練 of 都市時尚態度。' : '您可以繼續添加其他單品（如外套、鞋款或背包配件）來豐富這套造型的層次感！'}
                     </p>
                 </div>
+                
+                ${getAIRecommendation(currentMannequinOutfit)}
             `;
             latestDetailedReport = reportHtml;
         }
@@ -3194,6 +3292,7 @@
                         el.src = item.img; 
                         el.style.opacity = 1; 
                         el.setAttribute('data-item-id', item.id); // 修正：加入 ID 追蹤
+                        currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = item;
                         if (c === 'top') topItem = item;
                         if (c === 'outerwear') outerwearItem = item;
                         if (c === 'bottom') bottomItem = item;
