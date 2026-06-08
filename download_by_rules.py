@@ -35,46 +35,67 @@ out_names = [
 
 def get_tags_list(category, name):
     base = "mens"
+    style = "flatlay,product"
     
     if category == 'top':
         if any(x in name for x in ["T 恤", "T恤", "大學 T", "短袖"]):
-            return [f"{base},tshirt,fashion", f"{base},tshirt", f"{base},shirt"]
+            return [f"{base},tshirt,{style}", f"{base},tshirt,isolated", f"{base},tshirt", f"{base},shirt"]
         elif "襯衫" in name:
-            return [f"{base},shirt,fashion", f"{base},shirt", f"{base},apparel"]
+            if "法蘭絨" in name:
+                return [f"{base},flannel,shirt,{style}", f"{base},flannel,shirt", f"{base},shirt"]
+            elif "牛津" in name:
+                return [f"{base},oxford,shirt,{style}", f"{base},oxford,shirt", f"{base},shirt"]
+            elif "工裝" in name:
+                return [f"{base},workwear,shirt,{style}", f"{base},utility,shirt", f"{base},shirt"]
+            elif "亞麻" in name:
+                return [f"{base},linen,shirt,{style}", f"{base},linen,shirt", f"{base},shirt"]
+            return [f"{base},shirt,{style}", f"{base},shirt,isolated", f"{base},shirt", f"{base},apparel"]
         elif any(x in name for x in ["毛衣", "針織", "開襟"]):
-            return [f"{base},sweater,fashion", f"{base},knitwear", f"{base},shirt"]
+            return [f"{base},sweater,knitwear,{style}", f"{base},sweater,knitwear", f"{base},sweater", f"{base},shirt"]
         elif "POLO" in name or "polo" in name:
-            return [f"{base},polo,shirt", f"{base},polo", f"{base},shirt"]
+            return [f"{base},polo,shirt,{style}", f"{base},polo,shirt", f"{base},polo", f"{base},shirt"]
         elif "連帽" in name:
-            return [f"{base},hoodie,fashion", f"{base},hoodie", f"{base},jacket"]
+            return [f"{base},hoodie,{style}", f"{base},hoodie,isolated", f"{base},hoodie", f"{base},jacket"]
         else:
-            return [f"{base},shirt", f"{base},apparel"]
+            return [f"{base},shirt,{style}", f"{base},apparel"]
             
     elif category == 'bottom':
         if "牛仔褲" in name:
-            return [f"{base},jeans,denim", f"{base},jeans", f"{base},pants"]
+            return [f"{base},jeans,denim,{style}", f"{base},jeans,denim", f"{base},jeans", f"{base},pants"]
         elif "短褲" in name:
-            return [f"{base},shorts,fashion", f"{base},shorts", f"{base},pants"]
+            return [f"{base},shorts,{style}", f"{base},shorts,isolated", f"{base},shorts", f"{base},pants"]
         elif any(x in name for x in ["西裝褲", "西褲"]):
-            return [f"{base},trousers,suit", f"{base},trousers", f"{base},pants"]
+            return [f"{base},trousers,suit,{style}", f"{base},trousers,suit", f"{base},trousers", f"{base},pants"]
         elif any(x in name for x in ["長褲", "寬褲", "束口褲", "九分褲", "直筒褲"]):
-            return [f"{base},pants,fashion", f"{base},pants", f"{base},trousers"]
+            if "工裝" in name:
+                return [f"{base},cargo,pants,{style}", f"{base},cargo,pants", f"{base},pants"]
+            elif "燈芯絨" in name:
+                return [f"{base},corduroy,pants,{style}", f"{base},corduroy,pants", f"{base},pants"]
+            return [f"{base},pants,{style}", f"{base},pants,isolated", f"{base},pants", f"{base},trousers"]
         else:
-            return [f"{base},pants", f"{base},jeans"]
+            return [f"{base},pants,{style}", f"{base},jeans"]
             
     elif category == 'outerwear':
-        if "大衣" in name:
-            return [f"{base},coat,fashion", f"{base},coat", f"{base},jacket"]
+        if "大衣" in name or "風衣" in name:
+            return [f"{base},coat,overcoat,{style}", f"{base},coat,overcoat", f"{base},coat", f"{base},jacket"]
         elif "西裝外套" in name:
-            return [f"{base},blazer,suit", f"{base},blazer", f"{base},jacket"]
+            return [f"{base},blazer,suit,{style}", f"{base},blazer,suit", f"{base},blazer", f"{base},jacket"]
         elif "背心" in name:
-            return [f"{base},vest,fashion", f"{base},vest", f"{base},jacket"]
+            return [f"{base},vest,gilet,{style}", f"{base},vest,gilet", f"{base},vest", f"{base},jacket"]
         elif any(x in name for x in ["夾克", "外套"]):
-            return [f"{base},jacket,fashion", f"{base},jacket", f"{base},coat"]
+            if "丹寧" in name or "牛仔" in name:
+                return [f"{base},denim,jacket,{style}", f"{base},denim,jacket", f"{base},jacket"]
+            elif "麂皮" in name:
+                return [f"{base},suede,jacket,{style}", f"{base},suede,jacket", f"{base},jacket"]
+            elif "工裝" in name or "野戰" in name:
+                return [f"{base},military,jacket,{style}", f"{base},utility,jacket", f"{base},jacket"]
+            elif "飛行" in name:
+                return [f"{base},bomber,jacket,{style}", f"{base},bomber,jacket", f"{base},jacket"]
+            return [f"{base},jacket,{style}", f"{base},jacket,isolated", f"{base},jacket", f"{base},coat"]
         else:
-            return [f"{base},jacket", f"{base},coat"]
+            return [f"{base},jacket,{style}", f"{base},coat"]
             
-    return [f"{base},apparel", f"{base},clothing"]
+    return [f"{base},apparel,{style}", f"{base},clothing"]
 
 def download_image(tags, lock_id, filename):
     url = f"https://loremflickr.com/400/500/{tags}?lock={lock_id}"

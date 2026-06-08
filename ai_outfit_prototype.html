@@ -1726,6 +1726,49 @@
             return url;
         }
 
+        function getSimplifiedPurchaseLink(item) {
+            if (!item || !item.link) return '#';
+            if (!item.isExternal) return item.link;
+            let keyword = item.name;
+            const simplifications = [
+                { rule: /T 恤|T恤|大學 T|大學T|圓領短袖|短袖/, replace: "T恤" },
+                { rule: /法蘭絨襯衫|立領休閒襯衫|亞麻落肩襯衫|純棉牛津襯衫|工裝.*襯衫|條紋.*襯衫|立領.*襯衫|牛津襯衫/, replace: "襯衫" },
+                { rule: /開襟衫|毛衣|針織/, replace: "針織毛衣" },
+                { rule: /POLO 衫|POLO衫|POLO/, replace: "POLO衫" },
+                { rule: /連帽上衣|連帽/, replace: "連帽衛衣" },
+                { rule: /牛仔褲/, replace: "牛仔褲" },
+                { rule: /西裝褲|西褲/, replace: "西裝褲" },
+                { rule: /短褲/, replace: "短褲" },
+                { rule: /工裝長褲|工裝束口褲|工作風.*長褲/, replace: "工裝褲" },
+                { rule: /休閒長褲|寬褲|束口褲|九分褲|直筒褲|九分長褲/, replace: "休閒長褲" },
+                { rule: /連帽外套|連帽大衣/, replace: "連帽外套" },
+                { rule: /西裝外套/, replace: "西裝外套" },
+                { rule: /背心/, replace: "背心" },
+                { rule: /大衣|風衣/, replace: "大衣" },
+                { rule: /夾克外套|飛行夾克|夾克|野戰夾克/, replace: "夾克外套" },
+                { rule: /防風外套|運動外套|機能外套|軟殼外套/, replace: "防風外套" }
+            ];
+            for (const s of simplifications) {
+                if (s.rule.test(item.name)) {
+                    keyword = s.replace;
+                    break;
+                }
+            }
+            if (keyword === item.name) {
+                keyword = item.name
+                    .replace(/極簡|高級|精製|細緻|質感|復古|機能|磨毛|超彈性|重磅|涼感|清爽|華夫格|磨毛|雙褶|雙口袋|多功能|打褶|打褶/g, '')
+                    .trim();
+            }
+            const brand = item.source || "Uniqlo";
+            if (brand === "Uniqlo") {
+                return "https://www.uniqlo.com/tw/zh_TW/search.html?description=" + encodeURIComponent(keyword);
+            } else if (brand === "GU") {
+                return "https://www.gu-global.com/tw/zh_TW/search.html?description=" + encodeURIComponent(keyword);
+            } else {
+                return "https://shopee.tw/search?keyword=" + encodeURIComponent(keyword);
+            }
+        }
+
         // --- CATEGORIES LABELS ---
         // --- CATEGORIES LABELS ---
         const catLabels = { top: '上衣', outerwear: '外套', bottom: '下身', shoes: '鞋款', accessory: '配件' };
@@ -2341,7 +2384,7 @@
 
             if (equippedCats.length === 0) {
                 const defaultRec = findItemById(4021) || defaultWardrobe[0];
-                const purchaseUrl = defaultRec.link || `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(defaultRec.name)}`;
+                const purchaseUrl = getSimplifiedPurchaseLink(defaultRec);
                 return `
                     <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
                         <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
@@ -2377,7 +2420,7 @@
 
             const recIndex = Math.abs(currentItem.id) % alternatives.length;
             const recItem = alternatives[recIndex];
-            const purchaseUrl = recItem.link || `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(recItem.name)}`;
+            const purchaseUrl = getSimplifiedPurchaseLink(recItem);
 
             return `
                 <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
@@ -2589,7 +2632,7 @@
                         <button class="btn-prime" onclick="wearItem(window.currentModalItem); document.getElementById('item-detail-overlay').style.display='none';" style="width:100%; padding:12px; font-size:0.92rem; margin-bottom:0; background:linear-gradient(135deg,var(--accent),var(--cyan)); border:none; font-weight:800; letter-spacing:0.5px; cursor:pointer;">👗 立即穿戴此單品</button>
                         <div style="display:flex; gap:10px; width:100%;">`;
             if (item.isExternal) {
-                html += `<a href="${item.link}" target="_blank" class="btn-prime" style="flex:1.2; padding:10px; font-size:0.8rem; background:linear-gradient(45deg, #10b981, #059669); text-decoration:none; margin-bottom:0; display:flex; align-items:center; justify-content:center;">🛍️ 前往購買</a>`;
+                html += `<a href="${getSimplifiedPurchaseLink(item)}" target="_blank" class="btn-prime" style="flex:1.2; padding:10px; font-size:0.8rem; background:linear-gradient(45deg, #10b981, #059669); text-decoration:none; margin-bottom:0; display:flex; align-items:center; justify-content:center;">🛍️ 前往購買</a>`;
             }
             
             const isFav = favorites.includes(item.id);
