@@ -1713,6 +1713,12 @@
         function getProxiedImageUrl(url) {
             if (!url) return '';
             if (url.startsWith('http') && !url.includes('/api/proxy_image')) {
+                try {
+                    const u = new URL(url);
+                    if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.host === window.location.host) {
+                        return url;
+                    }
+                } catch (e) {}
                 const isLocalFile = window.location.protocol === 'file:';
                 const base = isLocalFile ? 'http://localhost:8000' : '';
                 return `${base}/api/proxy_image?url=${encodeURIComponent(url)}`;

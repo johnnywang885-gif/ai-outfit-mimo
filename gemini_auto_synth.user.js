@@ -187,15 +187,25 @@
 
     // 輔助：Base64 轉 File 物件
     function base64ToFile(base64Data, filename) {
-        const arr = base64Data.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
+        if (!base64Data || typeof base64Data !== 'string' || !base64Data.startsWith('data:')) {
+            console.error('[base64ToFile] Invalid data URL format:', base64Data ? base64Data.substring(0, 100) : 'null');
+            return new File([], filename, { type: 'image/png' });
         }
-        return new File([u8arr], filename, { type: mime });
+        try {
+            const arr = base64Data.split(',');
+            const match = arr[0].match(/:(.*?);/);
+            const mime = match ? match[1] : 'image/png';
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, { type: mime });
+        } catch (e) {
+            console.error('[base64ToFile] Error parsing base64:', e);
+            return new File([], filename, { type: 'image/png' });
+        }
     }
 
     // 深度尋找 Shadow DOM 內部的元素
