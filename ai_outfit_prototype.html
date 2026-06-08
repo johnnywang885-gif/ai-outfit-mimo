@@ -1411,7 +1411,7 @@
 
                 <!-- Trial Actions - Relocated to bottom-left corner so they don't block the model's body, and are easy to access -->
                 <div style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
-                    <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 隨機組合</button>
+                    <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 美學穿搭建議</button>
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(45deg, var(--accent), var(--cyan)); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); width: auto;" onclick="startVTON()">✨ 啟動 AI 擬真渲染 (VTON)</button>
                     <button id="vton-engine-btn" class="btn-prime" style="padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; opacity: 0.9;" onclick="setVtonEngine(VTON_ENGINE === 'fashn' ? 'classic' : 'fashn')">⚡ 快速模式 (FASHN v1.5)</button>
                 </div>
@@ -3296,29 +3296,97 @@
         }
 
         function randomize() {
+            // Build the complete list of items in the current pool (wardrobe + current web batches)
+            const allItemsPool = [...wardrobe];
+            for (const cat in webBatches) {
+                const group = webBatches[cat];
+                if (group && group.batches[group.batchIndex]) {
+                    allItemsPool.push(...group.batches[group.batchIndex]);
+                }
+            }
+
+            const themes = ['smart_casual', 'streetwear', 'minimalist'];
+            const selectedTheme = themes[Math.floor(Math.random() * themes.length)];
+
+            const themeNames = {
+                'smart_casual': '✦ 雅痞紳士風 (Smart Casual)',
+                'streetwear': '✦ 街頭工裝風 (Streetwear Utility)',
+                'minimalist': '✦ 極簡日系風 (Minimalist City Boy)'
+            };
+
+            const getThemeScore = (item, theme, cat) => {
+                const name = (item.name || '').toLowerCase();
+                const subtype = (item.subtype || '').toLowerCase();
+                const source = (item.source || '').toLowerCase();
+                let score = 0;
+
+                if (theme === 'smart_casual') {
+                    if (cat === 'top') {
+                        if (name.includes('襯衫') || name.includes('polo') || subtype.includes('正式')) score += 10;
+                        if (name.includes('t恤') || name.includes('t-shirt') || name.includes('上衣')) score += 3;
+                    } else if (cat === 'outerwear') {
+                        if (name.includes('西裝') || name.includes('大衣') || subtype.includes('正式')) score += 10;
+                    } else if (cat === 'bottom') {
+                        if (name.includes('卡其') || name.includes('西裝褲') || name.includes('休閒褲') || subtype.includes('正式')) score += 10;
+                        if (name.includes('牛仔')) score += 5;
+                    } else if (cat === 'shoes') {
+                        if (name.includes('皮鞋') || name.includes('小白鞋') || subtype.includes('正式')) score += 10;
+                        if (name.includes('帆布')) score += 5;
+                    } else if (cat === 'accessory') {
+                        if (name.includes('包') || name.includes('錶')) score += 5;
+                    }
+                } else if (theme === 'streetwear') {
+                    if (cat === 'top') {
+                        if (name.includes('印花') || name.includes('大學t') || name.includes('連帽') || subtype.includes('休閒')) score += 10;
+                        if (name.includes('t恤') || name.includes('t-shirt')) score += 5;
+                    } else if (cat === 'outerwear') {
+                        if (name.includes('牛仔') || name.includes('夾克') || name.includes('背心') || name.includes('棒球') || subtype.includes('休閒')) score += 10;
+                    } else if (cat === 'bottom') {
+                        if (name.includes('牛仔') || name.includes('工裝') || name.includes('短褲') || subtype.includes('休閒')) score += 10;
+                    } else if (cat === 'shoes') {
+                        if (name.includes('帆布') || name.includes('運動') || name.includes('帆布鞋') || subtype.includes('休閒')) score += 10;
+                    } else if (cat === 'accessory') {
+                        if (name.includes('帽') || name.includes('背包')) score += 10;
+                    }
+                } else if (theme === 'minimalist') {
+                    if (cat === 'top') {
+                        if (name.includes('純棉') || name.includes('寬版') || name.includes('亞麻') || source.includes('極簡')) score += 10;
+                    } else if (cat === 'outerwear') {
+                        if (name.includes('立領') || name.includes('防風') || source.includes('極簡')) score += 10;
+                    } else if (cat === 'bottom') {
+                        if (name.includes('寬褲') || name.includes('卡其') || source.includes('極簡')) score += 10;
+                    } else if (cat === 'shoes') {
+                        if (name.includes('帆布') || name.includes('小白鞋') || source.includes('極簡')) score += 10;
+                    } else if (cat === 'accessory') {
+                        if (name.includes('背包') || source.includes('極簡')) score += 5;
+                    }
+                }
+                return score;
+            };
+
             const cats = ['top', 'outerwear', 'bottom', 'shoes', 'accessory'];
-            let topItem = null;
-            let outerwearItem = null;
-            let bottomItem = null;
             cats.forEach(c => {
-                const items = wardrobe.filter(i => i.cat === c);
-                if (items.length > 0) {
-                    const item = items[Math.floor(Math.random() * items.length)];
+                const candidates = allItemsPool.filter(i => i.cat === c);
+                if (candidates.length > 0) {
+                    const scored = candidates.map(item => ({
+                        item,
+                        score: getThemeScore(item, selectedTheme, c) + Math.random() * 2 // slight randomness
+                    }));
+                    scored.sort((a, b) => b.score - a.score);
+                    const selectedItem = scored[0].item;
+                    
                     const el = document.getElementById(`view-${c}`);
                     if (el) { 
-                        el.src = item.img; 
+                        el.src = selectedItem.img; 
                         el.style.opacity = 1; 
-                        el.setAttribute('data-item-id', item.id); // 修正：加入 ID 追蹤
-                        currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = item;
-                        if (c === 'top') topItem = item;
-                        if (c === 'outerwear') outerwearItem = item;
-                        if (c === 'bottom') bottomItem = item;
+                        el.setAttribute('data-item-id', selectedItem.id);
+                        currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = selectedItem;
                     }
                 }
             });
             analyzeStyles();
             updateCancelButtonsVisibility();
-            showToast("✨ AI 已為您配對一套新組合");
+            showToast(`✨ AI 推薦穿搭建議：${themeNames[selectedTheme]}`);
         }
 
         function openSettings() {
