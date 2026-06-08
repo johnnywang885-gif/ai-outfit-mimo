@@ -2,6 +2,8 @@ import http.server
 import json
 import os
 import sys
+import urllib.request
+import urllib.parse
 
 PORT = 8000
 payload_data = None
@@ -75,6 +77,41 @@ class VestisHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(response_payload).encode('utf-8'))
             else:
                 self.wfile.write(json.dumps({}).encode('utf-8'))
+        elif self.path.startswith('/api/proxy_image'):
+            parsed_url = urllib.parse.urlparse(self.path)
+            query_params = urllib.parse.parse_qs(parsed_url.query)
+            target_url = query_params.get('url', [None])[0]
+            
+            if not target_url:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"Missing url parameter")
+                return
+            
+            try:
+                target_url = urllib.parse.unquote(target_url)
+                req = urllib.request.Request(
+                    target_url,
+                    headers={
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+                        'Accept-Language': 'zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7',
+                        'Referer': target_url
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=15) as response:
+                    content_type = response.headers.get('Content-Type', 'image/jpeg')
+                    image_data = response.read()
+                    
+                    self.send_response(200)
+                    self.send_header('Content-Type', content_type)
+                    self.send_header('Cache-Control', 'public, max-age=86400')
+                    self.end_headers()
+                    self.wfile.write(image_data)
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(f"Proxy error: {str(e)}".encode('utf-8'))
         else:
             super().do_GET()
 
