@@ -2329,14 +2329,17 @@
                 return `
                     <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
                         <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                            <img src="${defaultRec.img}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                            <img src="${defaultRec.img}" draggable="true" ondragstart="event.dataTransfer.setData('text', '${defaultRec.id}'); event.dataTransfer.setData('from_grid', 'true');" style="max-width: 90%; max-height: 90%; object-fit: contain; cursor: grab;" title="拖曳此單品至展示區進行試穿">
                         </div>
                         <div style="flex: 1; text-align: left;">
                             <div style="font-weight: 800; font-size: 0.9rem; color: var(--cyan); margin-bottom: 4px;">✨ AI 美學單品推薦</div>
-                            <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 6px 0;">
+                            <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 8px 0;">
                                 您目前尚未搭配單品。AI 推薦您試試這款高訂質感 **${defaultRec.name}**，百搭剪裁適合各種場合！
                             </p>
-                            <a href="${purchaseUrl}" target="_blank" style="display: inline-block; font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買此推薦單品 ➔</a>
+                            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                                <button onclick="wearRecommendedItem(${defaultRec.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
+                                <a href="${purchaseUrl}" target="_blank" style="font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買 ➔</a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2363,17 +2366,31 @@
             return `
                 <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
                     <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
-                        <img src="${recItem.img}" style="max-width: 90%; max-height: 90%; object-fit: contain;">
+                        <img src="${recItem.img}" draggable="true" ondragstart="event.dataTransfer.setData('text', '${recItem.id}'); event.dataTransfer.setData('from_grid', 'true');" style="max-width: 90%; max-height: 90%; object-fit: contain; cursor: grab;" title="拖曳此單品至展示區進行試穿">
                     </div>
                     <div style="flex: 1; text-align: left;">
                         <div style="font-weight: 800; font-size: 0.9rem; color: var(--cyan); margin-bottom: 4px;">✨ AI 美學替換推薦</div>
-                        <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 6px 0;">
+                        <p style="font-size: 0.8rem; color: var(--text-p); line-height: 1.5; margin: 0 0 8px 0;">
                             建議將當前穿戴的 **${currentItem.name || catLabels[targetCat]}** 替換為 **${recItem.name}**。此單品的剪裁與配色能與您的其他服飾形成更有層次的視覺光澤，提升整體品味。
                         </p>
-                        <a href="${purchaseUrl}" target="_blank" style="display: inline-block; font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買此推薦單品 ➔</a>
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <button onclick="wearRecommendedItem(${recItem.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
+                            <a href="${purchaseUrl}" target="_blank" style="font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買 ➔</a>
+                        </div>
                     </div>
                 </div>
             `;
+        }
+
+        function wearRecommendedItem(id) {
+            const item = findItemById(id);
+            if (item) {
+                wearItem(item);
+                document.getElementById('report-overlay').style.display = 'none';
+                showToast(`✨ 已成功套用推薦單品「${item.name}」進行試穿！`);
+            } else {
+                showToast("⚠️ 找不到該推薦單品資訊", "error");
+            }
         }
 
         function switchSidebarTab(tabName) {
