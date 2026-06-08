@@ -2823,13 +2823,13 @@
                 h: parseInt(document.getElementById("p-height").value) 
             };
             loadProfile(data);
-            localStorage.setItem("vestis_profile", JSON.stringify(data));
+            sessionStorage.setItem("vestis_profile", JSON.stringify(data));
             closeProfileModal();
             showToast(type === "head" ? "✅ 人臉數位分身建立成功！" : "✅ 全身取代分身建立成功！");
         }
 
         function manualFaceSwap() {
-            const saved = localStorage.getItem("vestis_profile");
+            const saved = sessionStorage.getItem("vestis_profile");
             if (!saved) {
                 showToast("請先建立分身", "error");
                 return;
@@ -2891,10 +2891,7 @@
                 } else if (id <= 1000000) {
                     showToast("⚠️ 內建單品或 Web 推薦單品無法刪除");
                 }
-                return;
             }
-            const data = JSON.parse(saved);
-            triggerFaceSwap(data.img, modelFiles[currentModelIndex], data.type || "head");
         }
         function loadProfile(data) {
             if(!data || !data.img) return;
@@ -2909,7 +2906,7 @@
         }
 
         function initProfile() {
-            const saved = localStorage.getItem('vestis_profile');
+            const saved = sessionStorage.getItem('vestis_profile');
             if (saved) {
                 try { loadProfile(JSON.parse(saved)); } catch(e) { console.error("Profile load fail", e); }
             }
