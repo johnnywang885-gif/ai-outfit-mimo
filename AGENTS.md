@@ -5,7 +5,7 @@
 Stateful VESTIS AI Try-on System consisting of:
 1. **Frontend Monolith:** `ai_outfit_prototype.html` (~3400 lines, 205KB). Contains all UI, CSS, and main logic. No build, bundler, or dependencies.
 2. **Local Relay Server:** `vestis_server.py` (Python HTTP server on port 8000). Serves static files and implements stateful endpoints (`/api/store_payload`, `/api/get_payload`, `/api/store_result`, `/api/get_result`) to bypass browser Cross-Origin-Opener-Policy (COOP) and CORS restrictions.
-3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.1). Automates Google Gemini Gem interface (`gemini.google.com`) for outfit synthesis, featuring recursive Shadow DOM selectors, simulated drag-and-drop file upload, and a response count guard.
+3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.4). Automates Google Gemini Gem interface (`gemini.google.com`) for outfit synthesis, featuring recursive Shadow DOM selectors, simulated drag-and-drop file upload, and a response count guard.
 
 **Layout:** Three-column CSS Grid — `col-left` (wardrobe/upload), `col-main` (try-on display), `col-right` (profile/favorites/logs). Mobile ≤768px uses fixed bottom nav bar.
 
@@ -76,4 +76,5 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **HUD 「vton渲染付費」警示引導區**：為了提升付費功能能見度，將原先在日誌動態滾動印出的「vton渲染付費」提示，移至 HUD 計時標題區下方作為常駐 Banner。採用 `.hud-payment-warning` 類別，字體加大（`0.85rem`），具金黃色霓虹效果，且移除原 `triggerGeminiQuickSynth()` 中的動態 `addHUDLine` 以免訊息重複。
 - **`modelFiles` 模特兒底圖陣列**：目前從資料夾 `穿搭照片/模特兒/` 中載入全部共 23 張模特兒底圖（型號包含 model1 到 model44）。主畫面上新增了半透明磨砂玻璃風格的左右切換按鈕（`.model-switch-btn`，`z-index: 25`），點選即可透過 `nextModel()` / `prevModel()` 和 `updateModelDisplay()` 進行順暢切換。
 - **Gemini 彈出視窗與焦點切換機制**：自動合成在螢幕中央開啟 `900x700` 尺寸的視窗展示 VESTIS 黑色讀取畫面。上傳完成並送出指令時，使用者腳本會對主視窗發送 `GEMINI_SENT` 訊息，促使主視窗調用 `window.focus()` 奪回焦點並將彈出視窗推至背景（防休眠運作中）。合成完畢後該視窗會透過 `window.close()` 自動關閉，不干擾使用者操作。
+- **Gemini 自動化視窗安全標記與防護隔離機制**：為防範使用者在系統關閉或日常手動開啟 Gemini 分頁時誤觸發自動化腳本導致頁面卡死，`ai_outfit_prototype.html` 的 `window.open` 網址會帶有 `&vestis=1` 參數。`gemini_auto_synth.user.js` (v2.4) 在載入之初會進行此標記檢查，若非 VESTIS 自動化調用則立刻退出，確保日常 Gemini 使用完全不受影響。
 
