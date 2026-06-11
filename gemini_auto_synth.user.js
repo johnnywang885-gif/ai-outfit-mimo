@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VESTIS AI Gemini 穿搭合成助手自動化腳本
 // @namespace    http://tampermonkey.net/
-// @version      2.3
+// @version      2.4
 // @description  自動化上傳 VESTIS 穿搭素材與提示詞至 Gemini 網頁前端，並自動將合成圖片帶回系統！
 // @author       Antigravity
 // @match        https://gemini.google.com/*
@@ -16,6 +16,13 @@
 
     // 確保只在最頂層視窗執行，避免在交叉域廣告或登入的子框架 (iframe) 中重疊執行
     if (window.self !== window.top) {
+        return;
+    }
+
+    // 檢查是否為 VESTIS 發起之自動化視窗。若非 VESTIS 發起，則直接退出不執行任何代碼，確保一般 Gemini 使用不受干擾。
+    const hasVestis = window.location.search.includes('vestis') || window.location.hash.includes('vestis') || window.location.href.includes('vestis=');
+    if (!hasVestis) {
+        console.log("[VESTIS] 一般 Gemini 網頁，不啟動自動化腳本。");
         return;
     }
 
