@@ -3591,7 +3591,9 @@
                 let finalResultUrl = "";
                 if (finalTopUrl && finalBottomUrl) {
                     addHUDLine("🎨 正在進行服飾層次融合...", 500);
-                    finalResultUrl = await mergeOutfitCanvas(finalTopUrl, finalBottomUrl);
+                    const topB64 = await getBase64(finalTopUrl);
+                    const bottomB64 = await getBase64(finalBottomUrl);
+                    finalResultUrl = await mergeOutfitCanvas(topB64, bottomB64);
                 } else {
                     finalResultUrl = finalTopUrl || finalBottomUrl;
                 }
@@ -3803,6 +3805,14 @@
         initProfile();
         initOutfitLog();
         initRandomModel();
+
+        // 偵測本地伺服器是否已啟動，給予人性化引導
+        fetch('/api/get_payload').catch(err => {
+            console.warn("[VESTIS] Local server check failed, likely not running:", err);
+            setTimeout(() => {
+                showToast("⚠️ 偵測到本地中繼伺服器未啟動！請雙擊執行資料夾下的「一鍵啟動_VESTIS_AI.bat」以防系統功能失效！", "error");
+            }, 1500);
+        });
 
         // =========================================================================
         // 📸 一鍵多圖快速合成試穿 & 行動裝置導覽邏輯 (Mimo Edition)
