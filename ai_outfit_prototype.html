@@ -1267,6 +1267,148 @@
                 font-size: 0.85rem !important; /* 0.75rem -> 0.85rem */
             }
         }
+
+        /* =========================================================================
+           OUTFIT WINDOW FRAME (RACK)
+           將已穿戴的單品移至模特兒右側，並呈現在垂直上下排列的衣櫃窗格中
+           ========================================================================= */
+        .outfit-frame {
+            position: absolute;
+            right: 1.25rem;
+            top: 1.25rem;
+            bottom: 7.5rem; /* 避開左下角的動作按鈕 */
+            width: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            background: rgba(10, 10, 12, 0.45);
+            border: 1px solid rgba(197, 168, 128, 0.1);
+            border-radius: 20px;
+            padding: 12px 6px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            pointer-events: auto; /* Ensure clicks are captured */
+        }
+        
+        .outfit-slot-wrapper {
+            position: relative;
+            width: 76px;
+            height: 76px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .outfit-slot {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1.5px dashed rgba(197, 168, 128, 0.2);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+            pointer-events: auto;
+        }
+
+        .outfit-slot:hover {
+            border-color: var(--cyan);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .outfit-slot.has-item {
+            border: 1.5px solid var(--accent);
+            background: rgba(20, 20, 25, 0.85);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .slot-placeholder {
+            font-size: 1.6rem;
+            color: rgba(255, 255, 255, 0.15);
+            transition: 0.3s;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .outfit-slot.has-item .slot-placeholder {
+            opacity: 0;
+            display: none;
+        }
+
+        .slot-img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .outfit-slot.has-item:hover .slot-img {
+            transform: scale(1.08);
+        }
+
+        /* 窗格專屬清除按鈕 */
+        .slot-clear-btn {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.85);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 900;
+            cursor: pointer;
+            z-index: 12;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        }
+
+        .slot-clear-btn:hover {
+            background: #ef4444;
+            transform: scale(1.15);
+        }
+        
+        /* 行動裝置窗格調整 */
+        @media (max-width: 768px) {
+            .outfit-frame {
+                right: 0.5rem;
+                top: 0.5rem;
+                bottom: 8rem; /* 行動端避開底部的按鈕和選單 */
+                width: 60px;
+                padding: 6px 4px;
+                border-radius: 12px;
+                gap: 6px;
+                background: rgba(10, 10, 12, 0.75);
+            }
+            .outfit-slot-wrapper {
+                width: 50px;
+                height: 50px;
+            }
+            .slot-placeholder {
+                font-size: 1.2rem;
+            }
+            .slot-clear-btn {
+                width: 15px;
+                height: 15px;
+                font-size: 8px;
+                top: -4px;
+                right: -4px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1456,18 +1598,54 @@
                         <div class="beauty-glow"></div>
                     </div>
                     <img id="base-model" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; display:none;">
-                    <img id="view-top" class="layer layer-top">
-                    <img id="view-outerwear" class="layer layer-outerwear">
-                    <img id="view-bottom" class="layer layer-bottom">
-                    <img id="view-shoes" class="layer layer-shoes">
-                    <img id="view-accessory" class="layer layer-accessory">
-                    
-                    <!-- 浮動清除按鈕 -->
-                    <button id="clear-accessory" class="layer-clear-btn" style="top: 2%; right: 5%; display: none;" onclick="clearItem('accessory')" title="取消選擇配件">✕</button>
-                    <button id="clear-outerwear" class="layer-clear-btn" style="top: 20%; right: 5%; display: none;" onclick="clearItem('outerwear')" title="取消選擇外套">✕</button>
-                    <button id="clear-top" class="layer-clear-btn" style="top: 38%; right: 5%; display: none;" onclick="clearItem('top')" title="取消選擇上衣">✕</button>
-                    <button id="clear-bottom" class="layer-clear-btn" style="top: 56%; right: 5%; display: none;" onclick="clearItem('bottom')" title="取消選擇下身">✕</button>
-                    <button id="clear-shoes" class="layer-clear-btn" style="top: 74%; right: 5%; display: none;" onclick="clearItem('shoes')" title="取消選擇鞋款">✕</button>
+                </div>
+
+                <!-- 已搭配服飾窗格框架 (與模特兒保持間隔且垂直上下排列) -->
+                <div id="outfit-window-frame" class="outfit-frame">
+                    <!-- 配件格 (Accessory Slot) -->
+                    <div class="outfit-slot-wrapper" id="wrapper-accessory">
+                        <div class="outfit-slot" id="slot-accessory" onclick="clickSlot('accessory')" title="點擊檢視配件詳情">
+                            <span class="slot-placeholder">👒</span>
+                            <img id="view-accessory" class="slot-img" style="opacity: 0;">
+                        </div>
+                        <button id="clear-accessory" class="slot-clear-btn" style="display: none;" onclick="clearItemEvent(event, 'accessory')" title="取消選擇配件">✕</button>
+                    </div>
+
+                    <!-- 外套格 (Outerwear Slot) -->
+                    <div class="outfit-slot-wrapper" id="wrapper-outerwear">
+                        <div class="outfit-slot" id="slot-outerwear" onclick="clickSlot('outerwear')" title="點擊檢視外套詳情">
+                            <span class="slot-placeholder">🧥</span>
+                            <img id="view-outerwear" class="slot-img" style="opacity: 0;">
+                        </div>
+                        <button id="clear-outerwear" class="slot-clear-btn" style="display: none;" onclick="clearItemEvent(event, 'outerwear')" title="取消選擇外套">✕</button>
+                    </div>
+
+                    <!-- 上衣格 (Top Slot) -->
+                    <div class="outfit-slot-wrapper" id="wrapper-top">
+                        <div class="outfit-slot" id="slot-top" onclick="clickSlot('top')" title="點擊檢視上衣詳情">
+                            <span class="slot-placeholder">👕</span>
+                            <img id="view-top" class="slot-img" style="opacity: 0;">
+                        </div>
+                        <button id="clear-top" class="slot-clear-btn" style="display: none;" onclick="clearItemEvent(event, 'top')" title="取消選擇上衣">✕</button>
+                    </div>
+
+                    <!-- 下著格 (Bottom Slot) -->
+                    <div class="outfit-slot-wrapper" id="wrapper-bottom">
+                        <div class="outfit-slot" id="slot-bottom" onclick="clickSlot('bottom')" title="點擊檢視下身詳情">
+                            <span class="slot-placeholder">👖</span>
+                            <img id="view-bottom" class="slot-img" style="opacity: 0;">
+                        </div>
+                        <button id="clear-bottom" class="slot-clear-btn" style="display: none;" onclick="clearItemEvent(event, 'bottom')" title="取消選擇下身">✕</button>
+                    </div>
+
+                    <!-- 鞋子格 (Shoes Slot) -->
+                    <div class="outfit-slot-wrapper" id="wrapper-shoes">
+                        <div class="outfit-slot" id="slot-shoes" onclick="clickSlot('shoes')" title="點擊檢視鞋款詳情">
+                            <span class="slot-placeholder">👟</span>
+                            <img id="view-shoes" class="slot-img" style="opacity: 0;">
+                        </div>
+                        <button id="clear-shoes" class="slot-clear-btn" style="display: none;" onclick="clearItemEvent(event, 'shoes')" title="取消選擇鞋款">✕</button>
+                    </div>
                 </div>
 
                 <!-- Trial Actions - Relocated to bottom-left corner so they don't block the model's body, and are easy to access -->
@@ -2711,11 +2889,33 @@
             cats.forEach(cat => {
                 const layer = document.getElementById(`view-${cat}`);
                 const btn = document.getElementById(`clear-${cat}`);
+                const slot = document.getElementById(`slot-${cat}`);
                 if (layer && btn) {
                     const hasItem = (layer.style.opacity === '1' || layer.getAttribute('data-item-id')) && layer.src && !layer.src.endsWith('.html') && layer.src !== window.location.href;
                     btn.style.display = hasItem ? 'flex' : 'none';
+                    if (slot) {
+                        if (hasItem) {
+                            slot.classList.add('has-item');
+                            layer.style.opacity = '1';
+                        } else {
+                            slot.classList.remove('has-item');
+                            layer.style.opacity = '0';
+                        }
+                    }
                 }
             });
+        }
+
+        function clickSlot(cat) {
+            const item = currentMannequinOutfit[cat === 'outerwear' ? 'outerwear' : cat];
+            if (item) {
+                showItemDetail(item);
+            }
+        }
+
+        function clearItemEvent(event, cat) {
+            if (event) event.stopPropagation();
+            clearItem(cat);
         }
 
         // --- 取消/清除已選定單品功能 ---
@@ -3959,12 +4159,12 @@
                 // 重要：不要用合成衣物後的照片覆蓋乾淨的人臉置換底圖，否則第二次一鍵合成會包含舊衣服
                 // faceSwappedJpgUrl = dataUrl;
                 
-                // 2. 清除主畫面的服裝與配件覆蓋層
-                clearItemSilent('top');
-                clearItemSilent('outerwear');
-                clearItemSilent('bottom');
-                clearItemSilent('shoes');
-                clearItemSilent('accessory');
+                // 2. 清除主畫面的服裝與配件覆蓋層 (模擬穿搭後不要移除右側單品)
+                // clearItemSilent('top');
+                // clearItemSilent('outerwear');
+                // clearItemSilent('bottom');
+                // clearItemSilent('shoes');
+                // clearItemSilent('accessory');
                 updateCancelButtonsVisibility();
                 analyzeStyles();
                 
@@ -4652,12 +4852,12 @@
             // 重要：不要用自動合成後的照片覆蓋乾淨的臉部置換底圖，否則第二次一鍵合成會包含舊衣服
             // faceSwappedJpgUrl = dataUrl;
             
-            // 2. 清除主畫面的服裝與配件覆蓋層
-            clearItemSilent('top');
-            clearItemSilent('outerwear');
-            clearItemSilent('bottom');
-            clearItemSilent('shoes');
-            clearItemSilent('accessory');
+            // 2. 清除主畫面的服裝與配件覆蓋層 (模擬穿搭後不要移除右側單品)
+            // clearItemSilent('top');
+            // clearItemSilent('outerwear');
+            // clearItemSilent('bottom');
+            // clearItemSilent('shoes');
+            // clearItemSilent('accessory');
             updateCancelButtonsVisibility();
             analyzeStyles();
             
