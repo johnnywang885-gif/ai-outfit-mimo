@@ -1206,6 +1206,67 @@
         @media (min-width: 769px) {
             .mobile-nav { display: none !important; }
         }
+
+        /* =========================================================================
+           FONT-SIZE OPTIMIZATION & READABILITY OVERRIDES
+           依使用者角度調整字體大小，放大偏小之文字與按鈕以利閱讀
+           ========================================================================= */
+        
+        /* 1. 桌面與平板端 (Desktop/Tablet) 全局與區域字體放大 */
+        .sidebar-nav-btn { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
+        .panel-section-title { font-size: 1.25rem; } /* 1.1rem -> 1.25rem */
+        .tab-btn { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        .cat-title { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
+        .trash-zone { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        
+        /* 側欄分身與即時分析 */
+        #profile-name { font-size: 0.95rem !important; } /* 0.85rem -> 0.95rem */
+        #profile-stats { font-size: 0.8rem !important; } /* 0.7rem -> 0.8rem */
+        .twin-card .btn-prime { font-size: 0.78rem !important; } /* 0.65rem -> 0.78rem */
+        .stat-group span, .stats-card span { font-size: 0.85rem !important; } /* 0.75rem -> 0.85rem */
+        
+        /* 展示區與頂部工具列 */
+        .btn-settings { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        .advisor-summary { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
+        .btn-report-trigger { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        .drawer-btn { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
+        .drawer-btn-badge { font-size: 0.8rem; } /* 0.7rem -> 0.8rem */
+        
+        /* HUD 診斷診斷文字 */
+        .hud-diagnostics { font-size: 0.85rem; } /* 0.7rem -> 0.85rem */
+        .hud-title { font-size: 0.9rem; } /* 0.75rem -> 0.9rem */
+        .toast { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
+
+        /* 衣櫃下方動作按鈕（上傳、拍照） */
+        .col-left > div[style*="display: flex"] .btn-prime {
+            font-size: 0.78rem !important; /* 0.65rem/0.7rem -> 0.78rem */
+        }
+        
+        /* 2. 行動裝置端 (Mobile) 字體微調與放大 */
+        @media (max-width: 768px) {
+            .tab-btn { font-size: 0.8rem !important; } /* 0.7rem -> 0.8rem */
+            .trash-zone { font-size: 0.8rem !important; } /* 0.7rem -> 0.8rem */
+            #city-selector { font-size: 0.75rem !important; } /* 0.65rem -> 0.75rem */
+            #weather-display { font-size: 0.75rem !important; } /* 0.65rem -> 0.75rem */
+            .visualizer > div[style*="position:absolute"] .btn-prime {
+                font-size: 0.75rem !important; /* 0.65rem -> 0.75rem */
+            }
+            .col-left > div[style*="display: flex"] .btn-prime {
+                font-size: 0.8rem !important; /* 0.7rem -> 0.8rem */
+            }
+            .hud-diagnostics {
+                font-size: 0.75rem !important; /* 0.6rem -> 0.75rem */
+            }
+            .hud-payment-warning {
+                font-size: 0.8rem !important; /* 0.7rem -> 0.8rem */
+            }
+            .hud-title {
+                font-size: 0.75rem !important; /* 0.65rem -> 0.75rem */
+            }
+            .advisor-summary {
+                font-size: 0.85rem !important; /* 0.75rem -> 0.85rem */
+            }
+        }
     </style>
 </head>
 <body>
