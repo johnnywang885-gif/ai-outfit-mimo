@@ -1694,8 +1694,22 @@
                 <div id="trial-actions-panel" style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 美學穿搭建議</button>
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto; color: white;" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
-                    <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(45deg, var(--accent), var(--cyan)); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); width: auto;" onclick="startVTON()">✨ 啟動 AI 擬真渲染 (VTON)</button>
-                    <button id="vton-engine-btn" class="btn-prime" style="padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; opacity: 0.9;" onclick="setVtonEngine(VTON_ENGINE === 'fashn' ? 'classic' : 'fashn')">⚡ 快速模式 (FASHN v1.5)</button>
+                    <div style="display: flex; flex-direction: column; gap: 6px; width: auto; background: rgba(15, 23, 42, 0.65); padding: 8px; border-radius: 16px; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
+                        <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(45deg, var(--accent), var(--cyan)); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); width: 100%; border: none;" onclick="startVTON()">✨ 啟動 AI 擬真渲染 (VTON)</button>
+                        
+                        <!-- 次選擇項目: 渲染模式 -->
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <div style="display: flex; gap: 4px; background: rgba(0, 0, 0, 0.4); padding: 3px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); align-self: flex-start;">
+                                <button id="vton-mode-fashn" onclick="setVtonEngine('fashn')" style="border: none; padding: 4px 10px; border-radius: 16px; font-size: 0.65rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 3px; background: transparent; color: rgba(255,255,255,0.6);" title="快速模式 (FASHN v1.5)：快速模式，~30秒">
+                                    ⚡ 快速 (FASHN)
+                                </button>
+                                <button id="vton-mode-classic" onclick="setVtonEngine('classic')" style="border: none; padding: 4px 10px; border-radius: 16px; font-size: 0.65rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 3px; background: transparent; color: rgba(255,255,255,0.6);" title="高品質模式 (IDM+CatVTON)：高品質模式，~3分鐘">
+                                    🎨 高品質 (IDM+Cat)
+                                </button>
+                            </div>
+                            <div id="vton-mode-desc" style="font-size: 0.6rem; color: var(--cyan); font-weight: 600; margin-left: 6px; line-height: 1.2;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -4332,14 +4346,34 @@
         // =========================================================================
 
         function syncVtonEngineButton() {
-            const btn = document.getElementById('vton-engine-btn');
-            if (!btn) return;
+            const btnFashn = document.getElementById('vton-mode-fashn');
+            const btnClassic = document.getElementById('vton-mode-classic');
+            const descEl = document.getElementById('vton-mode-desc');
+            
             if (VTON_ENGINE === 'fashn') {
-                btn.innerHTML = '⚡ 快速模式 (FASHN v1.5)';
-                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                if (btnFashn) {
+                    btnFashn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                    btnFashn.style.color = 'white';
+                }
+                if (btnClassic) {
+                    btnClassic.style.background = 'transparent';
+                    btnClassic.style.color = 'rgba(255,255,255,0.6)';
+                }
+                if (descEl) {
+                    descEl.innerHTML = '⚡ FASHN v1.5（快速模式，~30秒）';
+                }
             } else {
-                btn.innerHTML = '🎨 高品質模式 (IDM+CatVTON)';
-                btn.style.background = 'linear-gradient(135deg, var(--accent), #4338ca)';
+                if (btnFashn) {
+                    btnFashn.style.background = 'transparent';
+                    btnFashn.style.color = 'rgba(255,255,255,0.6)';
+                }
+                if (btnClassic) {
+                    btnClassic.style.background = 'linear-gradient(135deg, var(--accent), #4338ca)';
+                    btnClassic.style.color = 'white';
+                }
+                if (descEl) {
+                    descEl.innerHTML = '🎨 IDM-VTON + CatVTON（高品質模式，~3分鐘）';
+                }
             }
         }
 
