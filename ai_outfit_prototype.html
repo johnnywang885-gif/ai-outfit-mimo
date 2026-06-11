@@ -1564,7 +1564,6 @@
                 <h1 style="font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;">虛擬穿戴展示區</h1>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
-                    <button class="btn-settings" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
                     <button class="btn-settings" style="background: rgba(197, 168, 128, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
@@ -1694,6 +1693,7 @@
                 <!-- Trial Actions - Relocated to bottom-left corner so they don't block the model's body, and are easy to access -->
                 <div id="trial-actions-panel" style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 美學穿搭建議</button>
+                    <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto; color: white;" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(45deg, var(--accent), var(--cyan)); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); width: auto;" onclick="startVTON()">✨ 啟動 AI 擬真渲染 (VTON)</button>
                     <button id="vton-engine-btn" class="btn-prime" style="padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; opacity: 0.9;" onclick="setVtonEngine(VTON_ENGINE === 'fashn' ? 'classic' : 'fashn')">⚡ 快速模式 (FASHN v1.5)</button>
                 </div>
@@ -4005,6 +4005,9 @@
 
         // --- REALISTIC VTON ENGINE (USER TRIGGER) ---
         async function startVTON() {
+            if (!confirm("✨【AI 擬真渲染 (VTON) 提示】\n\n此功能「須付費，但擬真效果佳且省時快速」，確定要繼續執行嗎？")) {
+                return;
+            }
             const faceImg = document.getElementById('twin-face-img').src;
             const topEl = document.getElementById('view-top');
             const outerwearEl = document.getElementById('view-outerwear');
@@ -4785,6 +4788,9 @@
         });
 
         async function triggerGeminiQuickSynth() {
+            if (!confirm("📸【一鍵多圖自動合成提示】\n\n此功能「免費，但需長時間等待」，確定要繼續執行嗎？")) {
+                return;
+            }
             startHUDLoading();
             addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
             addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 200);
