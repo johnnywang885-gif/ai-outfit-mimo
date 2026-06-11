@@ -1321,6 +1321,7 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
                     <button class="btn-settings" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
+                    <button class="btn-settings" onclick="showGeminiWorkflowGuide()">🔌 腳本安裝</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
@@ -4361,6 +4362,7 @@
 
         async function triggerGeminiQuickSynth() {
             startHUDLoading();
+            showGeminiWorkflowGuide();
             addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
             addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 200);
             
