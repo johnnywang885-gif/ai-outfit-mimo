@@ -3337,32 +3337,122 @@
             const hasShoes = isItemEquipped(shoesEl) || (currentMannequinOutfit.shoes !== null);
             const hasAcc = isItemEquipped(accEl) || (currentMannequinOutfit.accessory !== null);
 
-            let formal = 0;
-            let harmony = 0;
+            const getEquippedItem = (el, cat) => {
+                if (isItemEquipped(el)) {
+                    const itemId = el.getAttribute('data-item-id');
+                    if (itemId) {
+                        return findItemById(itemId);
+                    }
+                }
+                return currentMannequinOutfit[cat === 'outerwear' ? 'outerwear' : cat];
+            };
 
-            if (hasTop) { formal += 20; harmony += 15; }
-            if (hasOuter) { formal += 30; harmony += 15; }
-            if (hasBottom) { formal += 20; harmony += 15; }
-            if (hasShoes) { formal += 20; harmony += 15; }
-            if (hasAcc) { formal += 10; harmony += 20; }
+            const topItem = getEquippedItem(topEl, 'top');
+            const outerItem = getEquippedItem(outerEl, 'outerwear');
+            const bottomItem = getEquippedItem(botEl, 'bottom');
+            const shoesItem = getEquippedItem(shoesEl, 'shoes');
+            const accItem = getEquippedItem(accEl, 'accessory');
 
-            if (formal === 0 && harmony === 0) {
+            if (!hasTop && !hasOuter && !hasBottom && !hasShoes && !hasAcc) {
                 document.getElementById('stat-formal').innerText = '--';
                 document.getElementById('stat-formal-bar').style.width = '0%';
                 document.getElementById('stat-harmony').innerText = '--';
                 document.getElementById('stat-harmony-bar').style.width = '0%';
-                setAIComment("請從左側衣櫃拖曳衣物或設定數位分身，AI 將即時分析搭配美感。");
+                setAIComment("請從左側衣櫃拖曳衣物或設定數位分身，AI 將即時 analysis 搭配美感。");
                 latestDetailedReport = "";
                 return;
             }
 
-            formal = Math.min(100, Math.max(10, formal + Math.floor(Math.random() * 15)));
-            harmony = Math.min(100, Math.max(10, harmony + Math.floor(Math.random() * 20)));
+            // 1. 真實計算正式度 (Formalness)
+            const getItemFormalScore = (item, cat) => {
+                if (!item) return 50; // 中性預設值
+                const name = (item.name || "").toLowerCase();
+                
+                // 正式關鍵字
+                if (name.includes("西裝") || name.includes("西褲") || name.includes("皮鞋") || name.includes("正裝")) {
+                    return 95;
+                }
+                if (name.includes("大衣") || name.includes("風衣") || name.includes("牛津襯衫") || (cat === "top" && name.includes("襯衫") && !name.includes("休閒") && !name.includes("法蘭絨"))) {
+                    return 85;
+                }
+                if (name.includes("襯衫") || name.includes("針織") || name.includes("皮帶") || name.includes("手錶")) {
+                    return 70;
+                }
+                
+                // 休閒關鍵字
+                if (name.includes("t恤") || name.includes("t 恤") || name.includes("短褲") || name.includes("運動") || name.includes("連帽") || name.includes("衛衣") || name.includes("大學t")) {
+                    return 25;
+                }
+                if (name.includes("工裝") || name.includes("牛仔") || name.includes("帆布") || name.includes("棒球帽") || name.includes("後背包") || name.includes("休閒褲") || name.includes("小白鞋")) {
+                    return 35;
+                }
+                
+                // 預設分類基礎分
+                if (cat === "top" || cat === "bottom") return 50;
+                if (cat === "outerwear") return 60;
+                if (cat === "shoes") return 45;
+                return 50;
+            };
 
+            const scores = [];
+            const itemDetails = [];
+            if (hasTop && topItem) { scores.push(getItemFormalScore(topItem, 'top')); itemDetails.push({cat:'上衣', name:topItem.name, formal:scores[scores.length-1]}); }
+            if (hasOuter && outerItem) { scores.push(getItemFormalScore(outerItem, 'outerwear')); itemDetails.push({cat:'外套', name:outerItem.name, formal:scores[scores.length-1]}); }
+            if (hasBottom && bottomItem) { scores.push(getItemFormalScore(bottomItem, 'bottom')); itemDetails.push({cat:'下著', name:bottomItem.name, formal:scores[scores.length-1]}); }
+            if (hasShoes && shoesItem) { scores.push(getItemFormalScore(shoesItem, 'shoes')); itemDetails.push({cat:'鞋款', name:shoesItem.name, formal:scores[scores.length-1]}); }
+            if (hasAcc && accItem) { scores.push(getItemFormalScore(accItem, 'accessory')); itemDetails.push({cat:'配件', name:accItem.name, formal:scores[scores.length-1]}); }
+
+            let formal = 50;
+            if (scores.length > 0) {
+                formal = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+            } else {
+                let baseFormal = 0;
+                if (hasTop) baseFormal += 20;
+                if (hasOuter) baseFormal += 30;
+                if (hasBottom) baseFormal += 20;
+                if (hasShoes) baseFormal += 20;
+                formal = baseFormal;
+            }
+
+            // 2. 真實計算風格和諧度 (Harmony)
+            let harmony = 95;
+            let conflictWarnings = [];
+
+            if (itemDetails.length >= 2) {
+                const topFormal = (hasOuter && outerItem) ? getItemFormalScore(outerItem, 'outerwear') : (hasTop ? getItemFormalScore(topItem, 'top') : null);
+                const bottomFormal = hasBottom ? getItemFormalScore(bottomItem, 'bottom') : null;
+                const shoesFormal = hasShoes ? getItemFormalScore(shoesItem, 'shoes') : null;
+
+                if (topFormal !== null && bottomFormal !== null) {
+                    const diff = Math.abs(topFormal - bottomFormal);
+                    if (diff > 45) {
+                        harmony -= 25;
+                        conflictWarnings.push(`⚠️ 風格衝突：上身服裝屬性偏向${topFormal > 60 ? '正裝' : '休閒'}，而下著卻顯得偏向${bottomFormal > 60 ? '正式' : '休閒'}，上下身不協調。`);
+                    }
+                }
+                
+                if (topFormal !== null && shoesFormal !== null) {
+                    const diff = Math.abs(topFormal - shoesFormal);
+                    if (diff > 50) {
+                        harmony -= 20;
+                        conflictWarnings.push(`⚠️ 鞋款衝突：主穿搭風格與鞋款相差過大（如正裝搭配休閒運動鞋，或休閒衣著配正式皮鞋）。`);
+                    }
+                }
+
+                if (accItem && topFormal !== null) {
+                    const accName = (accItem.name || "").toLowerCase();
+                    if (topFormal > 70 && (accName.includes("棒球帽") || accName.includes("背包") || accName.includes("帽子"))) {
+                        harmony -= 15;
+                        conflictWarnings.push(`⚠️ 配件不協調：正式西裝或大衣不建議搭配休閒的「棒球帽」或「雙肩後背包」，建議改用簡約皮包或腕錶。`);
+                    }
+                }
+            }
+
+            harmony = Math.min(100, Math.max(40, harmony + Math.floor(Math.random() * 5)));
+            
             const isVTONActive = document.getElementById('base-model').src.startsWith('data:');
             if (isVTONActive) {
-                formal = Math.min(100, formal + 10);
-                harmony = Math.min(100, harmony + 12);
+                harmony = Math.min(100, harmony + 5);
             }
 
             document.getElementById('stat-formal').innerText = formal + '%';
@@ -3380,7 +3470,7 @@
                 weatherAlert = "⛅ 目前氣溫宜人，適合舒適且具備層次感的搭配。";
             }
 
-            let quickSummary = `📍 ${currentWeatherData.cityName} (${currentWeatherData.landmark}) • 溫度 ${currentWeatherData.temp} • 正式程度 ${formal}% • ${weatherAlert}`;
+            let quickSummary = `📍 ${currentWeatherData.cityName} • 正式度 ${formal}% • 風格和諧 ${harmony}% • ${weatherAlert}`;
             setAIComment(quickSummary);
 
             let reportHtml = `
@@ -3397,21 +3487,42 @@
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.25rem; border-radius: 18px; margin-bottom: 1.25rem;">
                     <div style="font-weight: 800; font-size: 1rem; color: var(--cyan); margin-bottom: 8px;">📊 穿搭美學指標看板</div>
                     <div style="font-size: 0.85rem; color: var(--text-h); line-height: 1.8;">
-                        <strong>正式場合適配度：</strong>${formal}% (此款搭配適合${formal > 70 ? '正式商務、奢華晚宴或高級演講場合' : '都市街頭、朋友聚會與日常輕鬆通勤'})<br>
-                        <strong>風格色彩和諧度：</strong>${harmony}% (視覺層次${harmony > 70 ? '極具張力且配比完美，展現頂級美學' : '表現尚可，您可以嘗試更換鞋款或配件調整亮點'})<br>
-                        <strong>物理身形比例：</strong>優等 (已根據您設定的身型自動縮放模特兒骨架)
+                        <strong>正式場合適配度：</strong>${formal}% (此款搭配主要適合${formal > 70 ? '正式商務、奢華晚宴或高級演講' : (formal > 45 ? '商務休閒 (Smart Casual)、半正式聚會與質感通勤' : '都市街頭、朋友聚會與日常輕鬆休閒')})<br>
+                        <strong>風格和諧度：</strong>${harmony}% (${harmony > 85 ? '搭配風格非常一致且協調，美學素養優秀。' : '搭配風格有較大衝突，可參考下方警示優化。'})
                     </div>
                 </div>
+            `;
 
+            if (conflictWarnings.length > 0) {
+                reportHtml += `
+                    <div style="background: rgba(178,34,34,0.08); border: 1px solid rgba(178,34,34,0.25); padding: 1.25rem; border-radius: 18px; margin-bottom: 1.25rem;">
+                        <div style="font-weight: 800; font-size: 1rem; color: #ff6b6b; margin-bottom: 8px;">⚠️ 穿搭美學衝突警示 (Aesthetic Warnings)</div>
+                        <div style="font-size: 0.85rem; color: #ffb8b8; line-height: 1.6;">
+                            ${conflictWarnings.map(w => `<div style="margin-bottom:6px;">${w}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                reportHtml += `
+                    <div style="background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); padding: 1.25rem; border-radius: 18px; margin-bottom: 1.25rem;">
+                        <div style="font-weight: 800; font-size: 1rem; color: #4ade80; margin-bottom: 8px;">✅ 美學顧問總評 (Aesthetic General Review)</div>
+                        <div style="font-size: 0.85rem; color: #cbf3db; line-height: 1.6;">
+                            恭喜！此套搭配在風格上具有良好的一致性與和諧美感，單品色系與屬性融合完美。是一次非常成功且具質感的穿搭組合！
+                        </div>
+                    </div>
+                `;
+            }
+
+            reportHtml += `
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.25rem; border-radius: 18px;">
                     <div style="font-weight: 800; font-size: 1rem; color: var(--cyan); margin-bottom: 8px;">💡 VESTIS 智慧美學總評</div>
                     <p style="font-size: 0.85rem; color: var(--text-p); line-height: 1.6; margin: 0;">
                         目前的搭配展現了極高的設計感。${hasTop && hasBottom ? '上衣的輪廓與下身線條完美融合，再結合當下的氣候實景，散發出成熟洗練 of 都市時尚態度。' : '您可以繼續添加其他單品（如外套、鞋款或背包配件）來豐富這套造型的層次感！'}
                     </p>
                 </div>
-                
                 ${getAIRecommendation(currentMannequinOutfit)}
             `;
+
             latestDetailedReport = reportHtml;
         }
 
@@ -3451,34 +3562,44 @@
                         if (name.includes('牛仔')) score += 5;
                     } else if (cat === 'shoes') {
                         if (name.includes('皮鞋') || name.includes('小白鞋') || subtype.includes('正式')) score += 10;
-                        if (name.includes('帆布')) score += 5;
+                        if (name.includes('帆布')) score -= 8;
                     } else if (cat === 'accessory') {
-                        if (name.includes('包') || name.includes('錶')) score += 5;
+                        if (name.includes('手錶') || name.includes('皮帶') || name.includes('包')) score += 10;
+                        if (name.includes('棒球帽') || name.includes('帽子') || name.includes('後背包')) score -= 20;
                     }
                 } else if (theme === 'streetwear') {
                     if (cat === 'top') {
-                        if (name.includes('印花') || name.includes('大學t') || name.includes('連帽') || subtype.includes('休閒')) score += 10;
+                        if (name.includes('印花') || name.includes('大學t') || name.includes('連帽') || name.includes('衛衣') || subtype.includes('休閒')) score += 10;
                         if (name.includes('t恤') || name.includes('t-shirt')) score += 5;
+                        if (name.includes('襯衫') && !name.includes('工裝')) score -= 5;
                     } else if (cat === 'outerwear') {
                         if (name.includes('牛仔') || name.includes('夾克') || name.includes('背心') || name.includes('棒球') || subtype.includes('休閒')) score += 10;
+                        if (name.includes('西裝')) score -= 20;
                     } else if (cat === 'bottom') {
                         if (name.includes('牛仔') || name.includes('工裝') || name.includes('短褲') || subtype.includes('休閒')) score += 10;
+                        if (name.includes('西裝褲')) score -= 15;
                     } else if (cat === 'shoes') {
                         if (name.includes('帆布') || name.includes('運動') || name.includes('帆布鞋') || subtype.includes('休閒')) score += 10;
+                        if (name.includes('皮鞋')) score -= 20;
                     } else if (cat === 'accessory') {
-                        if (name.includes('帽') || name.includes('背包')) score += 10;
+                        if (name.includes('帽') || name.includes('背包') || name.includes('帽子')) score += 10;
                     }
                 } else if (theme === 'minimalist') {
                     if (cat === 'top') {
                         if (name.includes('純棉') || name.includes('寬版') || name.includes('亞麻') || source.includes('極簡')) score += 10;
+                        if (name.includes('印花')) score -= 8;
                     } else if (cat === 'outerwear') {
-                        if (name.includes('立領') || name.includes('防風') || source.includes('極簡')) score += 10;
+                        if (name.includes('立領') || name.includes('防風') || source.includes('極簡') || name.includes('風衣')) score += 10;
+                        if (name.includes('西裝')) score -= 10;
                     } else if (cat === 'bottom') {
-                        if (name.includes('寬褲') || name.includes('卡其') || source.includes('極簡')) score += 10;
+                        if (name.includes('寬褲') || name.includes('卡其') || source.includes('極簡') || name.includes('休閒長褲')) score += 10;
+                        if (name.includes('工裝')) score -= 5;
                     } else if (cat === 'shoes') {
                         if (name.includes('帆布') || name.includes('小白鞋') || source.includes('極簡')) score += 10;
+                        if (name.includes('皮鞋')) score -= 10;
                     } else if (cat === 'accessory') {
                         if (name.includes('背包') || source.includes('極簡')) score += 5;
+                        if (name.includes('棒球帽')) score -= 10;
                     }
                 }
                 return score;
@@ -3493,14 +3614,23 @@
                         score: getThemeScore(item, selectedTheme, c) + Math.random() * 2 // slight randomness
                     }));
                     scored.sort((a, b) => b.score - a.score);
-                    const selectedItem = scored[0].item;
                     
                     const el = document.getElementById(`view-${c}`);
-                    if (el) { 
-                        el.src = selectedItem.img; 
-                        el.style.opacity = 1; 
-                        el.setAttribute('data-item-id', selectedItem.id);
-                        currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = selectedItem;
+                    if (el) {
+                        // 配件連動優化：如果配件分數太低或為負分，為了整體美感寧可不穿戴配件
+                        if (c === 'accessory' && scored[0].score < 3) {
+                            el.style.opacity = 0;
+                            el.removeAttribute('data-item-id');
+                            el.src = '';
+                            el.removeAttribute('src');
+                            currentMannequinOutfit.accessory = null;
+                        } else {
+                            const selectedItem = scored[0].item;
+                            el.src = selectedItem.img; 
+                            el.style.opacity = 1; 
+                            el.setAttribute('data-item-id', selectedItem.id);
+                            currentMannequinOutfit[c === 'outerwear' ? 'outerwear' : c] = selectedItem;
+                        }
                     }
                 }
             });
