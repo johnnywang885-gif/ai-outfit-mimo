@@ -1430,6 +1430,26 @@
                 right: -4px;
             }
         }
+
+        /* =========================================================================
+           ONBOARDING GUIDE TOUR
+           ========================================================================= */
+        @keyframes floatAvatar {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-6px) rotate(6deg); }
+        }
+        @keyframes guidePulse {
+            0%, 100% { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow), inset 0 0 10px var(--cyan-glow); }
+            50% { border-color: var(--accent); box-shadow: 0 0 25px var(--accent-glow), inset 0 0 15px var(--accent-glow); }
+        }
+        @keyframes pointerWiggle {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-10px, -5px); }
+        }
+        .guide-avatar-anim {
+            display: inline-block;
+            animation: floatAvatar 2s ease-in-out infinite;
+        }
     </style>
 </head>
 <body>
@@ -1545,6 +1565,7 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
                     <button class="btn-settings" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
+                    <button class="btn-settings" style="background: rgba(197, 168, 128, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
@@ -1671,7 +1692,7 @@
                 </div>
 
                 <!-- Trial Actions - Relocated to bottom-left corner so they don't block the model's body, and are easy to access -->
-                <div style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
+                <div id="trial-actions-panel" style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 美學穿搭建議</button>
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(45deg, var(--accent), var(--cyan)); color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); width: auto;" onclick="startVTON()">✨ 啟動 AI 擬真渲染 (VTON)</button>
                     <button id="vton-engine-btn" class="btn-prime" style="padding: 6px 14px; border-radius: 100px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, #10b981, #059669); color: white; width: auto; opacity: 0.9;" onclick="setVtonEngine(VTON_ENGINE === 'fashn' ? 'classic' : 'fashn')">⚡ 快速模式 (FASHN v1.5)</button>
@@ -5105,7 +5126,265 @@
         // 確保 VTON 引擎按鈕文字同步
         syncVtonEngineButton();
 
+        // =========================================================================
+        // ONBOARDING GUIDE TOUR TOUR LOGIC
+        // =========================================================================
+        let currentGuideStep = 0;
+        const guideSteps = [
+            {
+                title: "歡迎來到 VESTIS Atelier 虛擬衣間",
+                desc: "我是您的時尚管家。這裡為您準備了專屬 AI 虛擬試衣間與個人分身系統。只需 5 個簡單步驟即可快速掌握所有操作！",
+                assistant: "很高興為您服務！讓我們點擊下方按鈕開始探索吧！✨",
+                target: null,
+                position: "center"
+            },
+            {
+                title: "挑選與拖曳穿戴單品",
+                desc: "左側為您的「個人衣櫃」與「Web 推薦單品」。您可以點選「上衣、下身、鞋款、配件」分類標籤。雙擊單品或按住直接拖曳至模特兒身上即可試穿！",
+                assistant: "我們剛剛為鞋款與配件各新增了 30 項質感單品喔！🔄",
+                target: ".col-left",
+                position: "right"
+            },
+            {
+                title: "智慧試衣窗格",
+                desc: "您已穿戴的單品會以垂直上下排列方式呈現在右側的「衣櫃窗格」中。您可以點選個別窗格查看單品詳情與前往購買，點選「✕」可取下單品。",
+                assistant: "窗格已優化，不會被後續合成重置，方便您隨時點選！🛍️",
+                target: "#outfit-window-frame",
+                position: "left"
+            },
+            {
+                title: "建立您的個人數位分身",
+                desc: "點選「分身」標籤，您可上傳人像照或自拍進行「人臉置換」，並輸入身高體重自訂模特兒比例，讓合成效果與您的真實身形完美契合！",
+                assistant: "置換後，每次試衣都會自動套用您的專屬分身臉部喔！👤",
+                target: "#btn-tab-twin",
+                position: "right"
+            },
+            {
+                title: "啟動 AI 擬真渲染 (VTON)",
+                desc: "搭配完成後，點擊下方的「✦ AI 美學穿搭建議」可獲得美學看板評分；點擊「✨ 啟動 AI 擬真渲染」或「一鍵多圖自動合成」，即可在背景隱形執行並輸出極致相片！",
+                assistant: "下方的 HUD 看板隨時為您顯示診斷連線與付費功能引導！🚀",
+                target: "#trial-actions-panel",
+                position: "top"
+            }
+        ];
+
+        function startGuideTour(forced = false) {
+            if (!forced && localStorage.getItem("vestis_guide_completed")) {
+                return;
+            }
+            
+            // 關閉可能干擾的對話框
+            const settingsOverlay = document.getElementById("settings-overlay");
+            if (settingsOverlay) settingsOverlay.style.display = "none";
+            const profileOverlay = document.getElementById("profile-overlay");
+            if (profileOverlay) profileOverlay.style.display = "none";
+            
+            // 強制切換回「衣櫃」分頁，以便導覽正確對焦
+            switchSidebarTab('wardrobe');
+            
+            currentGuideStep = 0;
+            document.getElementById("guide-tour-container").style.display = "block";
+            updateGuideStep();
+        }
+
+        function updateGuideStep() {
+            const step = guideSteps[currentGuideStep];
+            document.getElementById("guide-step-indicator").textContent = `STEP ${currentGuideStep + 1} OF ${guideSteps.length}`;
+            document.getElementById("guide-title").textContent = step.title;
+            document.getElementById("guide-desc").textContent = step.desc;
+            document.getElementById("guide-assistant-text").textContent = step.assistant;
+            
+            document.getElementById("guide-btn-prev").style.display = currentGuideStep === 0 ? "none" : "block";
+            document.getElementById("guide-btn-next").textContent = currentGuideStep === guideSteps.length - 1 ? "完成導覽 🎉" : "下一步 ➔";
+            
+            positionTooltip(step);
+        }
+
+        function nextGuideStep() {
+            if (currentGuideStep === guideSteps.length - 1) {
+                skipGuideTour();
+            } else {
+                currentGuideStep++;
+                updateGuideStep();
+            }
+        }
+
+        function prevGuideStep() {
+            if (currentGuideStep > 0) {
+                currentGuideStep--;
+                updateGuideStep();
+            }
+        }
+
+        function skipGuideTour() {
+            document.getElementById("guide-tour-container").style.display = "none";
+            localStorage.setItem("vestis_guide_completed", "true");
+            showToast("🎉 恭喜完成引導！隨時點擊上方選單的「❓ 操作導覽」即可再次重溫！");
+        }
+
+        function positionTooltip(step) {
+            const tooltip = document.getElementById("guide-tooltip");
+            const targetEl = step.target ? document.querySelector(step.target) : null;
+            const glowingTarget = document.getElementById("guide-glowing-target");
+            const pointer = document.getElementById("guide-pointer");
+
+            tooltip.style.opacity = "0";
+            tooltip.style.transform = "scale(0.95)";
+            pointer.style.opacity = "0";
+            
+            setTimeout(() => {
+                if (!targetEl) {
+                    // Center
+                    glowingTarget.style.opacity = "0";
+                    pointer.style.opacity = "0";
+                    
+                    const isMobile = window.innerWidth <= 768;
+                    if (isMobile) {
+                        tooltip.style.left = "5%";
+                        tooltip.style.width = "90%";
+                        tooltip.style.top = "auto";
+                        tooltip.style.bottom = "80px";
+                        tooltip.style.transform = "none";
+                    } else {
+                        tooltip.style.left = "50%";
+                        tooltip.style.top = "50%";
+                        tooltip.style.transform = "translate(-50%, -50%) scale(1)";
+                        tooltip.style.width = "350px";
+                    }
+                    tooltip.style.opacity = "1";
+                    return;
+                }
+
+                const rect = rectHelper(targetEl);
+                
+                // Show glowing target around element
+                glowingTarget.style.left = (rect.left - 8) + "px";
+                glowingTarget.style.top = (rect.top - 8) + "px";
+                glowingTarget.style.width = (rect.width + 16) + "px";
+                glowingTarget.style.height = (rect.height + 16) + "px";
+                glowingTarget.style.opacity = "1";
+
+                const isMobile = window.innerWidth <= 768;
+                if (isMobile) {
+                    // Mobile positioning: bottom center
+                    tooltip.style.left = "5%";
+                    tooltip.style.width = "90%";
+                    tooltip.style.top = "auto";
+                    tooltip.style.bottom = "80px";
+                    tooltip.style.transform = "none";
+                    tooltip.style.opacity = "1";
+                    
+                    pointer.style.opacity = "0"; // Disable pointer hand on mobile to avoid overlapping UI
+                    
+                    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+
+                const pad = 20;
+                const tw = 350;
+                const th = tooltip.offsetHeight || 260;
+                
+                let targetLeft = 0;
+                let targetTop = 0;
+
+                if (step.position === "right") {
+                    targetLeft = rect.right + pad;
+                    targetTop = rect.top + rect.height/2 - th/2;
+                    
+                    pointer.textContent = "👈";
+                    pointer.style.left = (rect.left - 50) + "px";
+                    pointer.style.top = (rect.top + rect.height/2 - 20) + "px";
+                    pointer.style.opacity = "1";
+                } else if (step.position === "left") {
+                    targetLeft = rect.left - tw - pad;
+                    targetTop = rect.top + rect.height/2 - th/2;
+                    
+                    pointer.textContent = "👉";
+                    pointer.style.left = (rect.right + 15) + "px";
+                    pointer.style.top = (rect.top + rect.height/2 - 20) + "px";
+                    pointer.style.opacity = "1";
+                } else if (step.position === "top") {
+                    targetLeft = rect.left + rect.width/2 - tw/2;
+                    targetTop = rect.top - th - pad;
+                    
+                    pointer.textContent = "👇";
+                    pointer.style.left = (rect.left + rect.width/2 - 20) + "px";
+                    pointer.style.top = (rect.top - 50) + "px";
+                    pointer.style.opacity = "1";
+                } else if (step.position === "bottom") {
+                    targetLeft = rect.left + rect.width/2 - tw/2;
+                    targetTop = rect.bottom + pad;
+                    
+                    pointer.textContent = "👆";
+                    pointer.style.left = (rect.left + rect.width/2 - 20) + "px";
+                    pointer.style.top = (rect.bottom + 15) + "px";
+                    pointer.style.opacity = "1";
+                }
+
+                // Viewport boundary check
+                targetLeft = Math.max(15, Math.min(targetLeft, window.innerWidth - tw - 15));
+                targetTop = Math.max(15, Math.min(targetTop, window.innerHeight - th - 15));
+
+                tooltip.style.left = targetLeft + "px";
+                tooltip.style.top = targetTop + "px";
+                tooltip.style.width = tw + "px";
+                tooltip.style.transform = "scale(1)";
+                tooltip.style.opacity = "1";
+            }, 100);
+        }
+
+        // Helper to get offset relative to page
+        function rectHelper(el) {
+            const r = el.getBoundingClientRect();
+            return {
+                left: r.left,
+                top: r.top,
+                width: r.width,
+                height: r.height,
+                right: r.right,
+                bottom: r.bottom
+            };
+        }
+
+        // Auto trigger after page fully loaded
+        setTimeout(() => {
+            startGuideTour(false);
+        }, 2000);
+
     </script>
+
+    <!-- VESTIS Onboarding Guide Tour Overlay -->
+    <div id="guide-tour-container" style="display: none; position: fixed; inset: 0; z-index: 10000; pointer-events: none; transition: all 0.4s ease;">
+        <!-- Dark Backdrop -->
+        <div id="guide-backdrop" style="position: absolute; inset: 0; background: transparent; pointer-events: auto; transition: all 0.4s ease;"></div>
+        
+        <!-- Glowing Target Border Overlay -->
+        <div id="guide-glowing-target" style="position: absolute; border: 2.5px solid var(--cyan); border-radius: 20px; pointer-events: none; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; z-index: 9999; animation: guidePulse 2s infinite; box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.72), 0 0 20px var(--cyan-glow);"></div>
+        
+        <!-- Floating Glowing hand pointer -->
+        <div id="guide-pointer" style="position: absolute; font-size: 2.5rem; pointer-events: none; z-index: 10002; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; filter: drop-shadow(0 0 8px var(--cyan-glow)); animation: pointerWiggle 1.5s infinite;">👉</div>
+
+        <!-- Floating Tooltip Card -->
+        <div id="guide-tooltip" style="position: absolute; width: 350px; background: rgba(15, 23, 42, 0.95); border: 2px solid var(--accent); box-shadow: 0 20px 50px rgba(0,0,0,0.85), 0 0 30px var(--accent-glow); border-radius: 24px; padding: 22px; pointer-events: auto; z-index: 10001; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); transform: scale(0.9); opacity: 0; display: flex; flex-direction: column; gap: 14px; backdrop-filter: blur(12px); box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="guide-step-indicator" style="font-size: 0.7rem; font-weight: 800; color: var(--cyan); letter-spacing: 1.5px; text-transform: uppercase;">STEP 1 OF 5</span>
+                <button onclick="skipGuideTour()" style="background: transparent; border: none; color: rgba(255,255,255,0.4); cursor: pointer; font-size: 0.72rem; font-weight: 700; transition: 0.2s; padding: 0;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='rgba(255,255,255,0.4)'">✕ 跳過導覽</button>
+            </div>
+            <h3 id="guide-title" style="margin: 0; font-size: 1.15rem; color: var(--accent); font-family: 'Cormorant Garamond', serif; font-weight: 800; letter-spacing: 0.5px;">歡迎使用 VESTIS AI</h3>
+            <p id="guide-desc" style="margin: 0; font-size: 0.82rem; color: var(--text-p); line-height: 1.6;"></p>
+            
+            <!-- Animated Guide Assistant Mini Character -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 5px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="guide-avatar-anim" style="font-size: 2rem;">🧙‍♂️</div>
+                <div id="guide-assistant-text" style="font-size: 0.75rem; color: var(--cyan); font-weight: 700; line-height: 1.35; flex: 1;">嗨！我是您的 AI 時尚管家，跟我一起走吧！</div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px;">
+                <button id="guide-btn-prev" onclick="prevGuideStep()" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: #fff; border-radius: 100px; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: 0.2s; flex: 1;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">上一步</button>
+                <button id="guide-btn-next" onclick="nextGuideStep()" style="background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 100px; padding: 8px 18px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: 0.2s; flex: 1.5; box-shadow: 0 4px 15px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">下一步 ➔</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
