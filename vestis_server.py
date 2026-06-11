@@ -4,10 +4,27 @@ import os
 import sys
 import urllib.request
 import urllib.parse
+import glob
 
 PORT = 8000
 payload_data = None
 result_data = None
+
+def cleanup_temp_downloads():
+    downloads_path = os.path.join(os.path.expanduser('~'), 'Downloads')
+    targets = ['model', 'top', 'outer', 'bottom', 'shoes', 'accessory']
+    for target in targets:
+        # Match target.png and target (1).png, target (2).png etc.
+        pattern1 = os.path.join(downloads_path, f"{target}.png")
+        pattern2 = os.path.join(downloads_path, f"{target} (*).png")
+        
+        for file_path in glob.glob(pattern1) + glob.glob(pattern2):
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print(f"[VESTIS SERVER] Cleaned up downloaded temp file: {file_path}")
+            except Exception as e:
+                print(f"[VESTIS SERVER] Failed to delete {file_path}: {e}")
 
 class VestisHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -34,6 +51,10 @@ class VestisHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({"status": "success"}).encode('utf-8'))
+                try:
+                    cleanup_temp_downloads()
+                except Exception as e:
+                    print(f"[VESTIS SERVER] Error cleaning up downloads at start: {e}")
             except Exception as e:
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
@@ -75,6 +96,10 @@ class VestisHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 response_payload = result_data
                 result_data = None 
                 self.wfile.write(json.dumps(response_payload).encode('utf-8'))
+                try:
+                    cleanup_temp_downloads()
+                except Exception as e:
+                    print(f"[VESTIS SERVER] Error cleaning up downloads: {e}")
             else:
                 self.wfile.write(json.dumps({}).encode('utf-8'))
         elif self.path.startswith('/api/proxy_image'):
