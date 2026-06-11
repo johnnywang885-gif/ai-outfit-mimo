@@ -1321,7 +1321,6 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
                     <button class="btn-settings" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
-                    <button class="btn-settings" onclick="showGeminiWorkflowGuide()">🔌 腳本安裝</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
@@ -4265,104 +4264,8 @@
             }
         });
 
-        function showGeminiWorkflowGuide() {
-            // 移除舊的指引
-            hideGeminiWorkflowGuide();
-
-            // 注入 CSS 動畫
-            if (!document.getElementById('gemini-guide-style')) {
-                const style = document.createElement('style');
-                style.id = 'gemini-guide-style';
-                style.textContent = `
-                    @keyframes fadeInSlideUp {
-                        from { opacity: 0; transform: translate(-50%, 20px); }
-                        to { opacity: 1; transform: translate(-50%, 0); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-
-            const guide = document.createElement('div');
-            guide.id = 'gemini-workflow-guide';
-            guide.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 90%;
-                max-width: 450px;
-                background: rgba(15, 23, 42, 0.95);
-                backdrop-filter: blur(15px);
-                border: 1px solid var(--accent);
-                border-radius: 16px;
-                padding: 16px;
-                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
-                z-index: 99999;
-                color: #fff;
-                font-family: inherit;
-                animation: fadeInSlideUp 0.4s ease-out;
-            `;
-
-            guide.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <strong style="color: var(--cyan); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
-                        📸 Gemini 穿搭合成助手自動化運作中
-                    </strong>
-                    <span style="cursor: pointer; font-size: 1.2rem; color: rgba(255,255,255,0.6);" onclick="hideGeminiWorkflowGuide()">&times;</span>
-                </div>
-                <div style="font-size: 0.8rem; line-height: 1.6; color: var(--text-p); margin-bottom: 12px; text-align: left;">
-                    <p style="margin: 4px 0; color: #22c55e;">🤖 <strong>極速全自動模式</strong>：如果您已安裝自動化腳本，系統將自動輸入提示詞、上傳圖片送出，並在生成後<strong>自動帶回合成結果</strong>並關閉視窗，無需手動操作！</p>
-                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(197, 168, 128, 0.3); padding: 12px; border-radius: 8px; margin: 8px 0; font-size: 0.75rem; text-align: left;">
-                        💡 <strong>自動化腳本安裝指引：</strong><br>
-                        <span style="color: #f43f5e; font-weight: bold;">⚠️ 提示：「無法從這網站新增應用程式...」是因為您尚未安裝下方 Tampermonkey 擴充套件，請務必先完成步驟 1。</span><br><br>
-                        <strong>步驟 1.</strong> 點此前往 Chrome 商店安裝 <a href="https://chromewebstore.google.com/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank" style="color: var(--cyan); text-decoration: underline; font-weight: 800;">加到 Chrome ➔ 安裝 Tampermonkey 擴充功能</a>。<br><br>
-                        <strong>步驟 2 (推薦：自動安裝).</strong> 安裝完 Tampermonkey 後，直接點擊下方連結：<br>
-                        <a href="http://localhost:8000/gemini_auto_synth.user.js" target="_blank" style="display: block; text-align: center; margin: 6px 0; padding: 8px; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; text-decoration: none; border-radius: 6px; font-weight: 800; border: 1px solid var(--cyan); box-shadow: 0 0 10px var(--cyan-glow);">⚡ 點我直接自動安裝 VESTIS 腳本</a>
-                        <em>(點擊後會自動彈出 Tampermonkey 安裝畫面，直接點擊「安裝」按鈕即可)</em><br><br>
-                        <strong>步驟 3 (備用：手動安裝).</strong> 若自動安裝無反應，請點擊下方按鈕複製腳本：<br>
-                        <button onclick="copyTampermonkeyScript()" class="btn-prime" style="padding: 6px 10px; font-size: 0.72rem; margin-top: 4px; margin-bottom: 4px; background: linear-gradient(135deg, var(--accent), #4338ca); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: 800;">📋 一鍵複製自動化腳本內容</button>
-                        複製後，在瀏覽器右上角點擊 Tampermonkey 圖示 ➔ 選擇「新增腳本 (Create a new script...)」 ➔ 把預設的程式碼全部刪除 ➔ 貼上 (Ctrl+V) ➔ 按 <strong>Ctrl + S 存檔</strong> 即可完成！
-                    </div>
-                    <p style="margin: 4px 0; color: #94a3b8; font-size: 0.72rem;">⚠️ 備份手動模式：若未安裝腳本，提示詞已複製、素材已下載，可在 Gemini 貼上送出，生成後點擊右鍵複製，回到此處貼上 (Ctrl+V) 即可帶回。</p>
-                </div>
-                <div style="text-align: right;">
-                    <button class="btn-prime" style="padding: 6px 12px; font-size: 0.75rem; margin-bottom: 0; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); box-shadow: none;" onclick="hideGeminiWorkflowGuide()">關閉指引面板</button>
-                </div>
-            `;
-            document.body.appendChild(guide);
-        }
-
-        function hideGeminiWorkflowGuide() {
-            const guide = document.getElementById('gemini-workflow-guide');
-            if (guide) {
-                guide.remove();
-            }
-        }
-
-        function copyTampermonkeyScript() {
-            fetch('/gemini_auto_synth.user.js')
-                .then(res => {
-                    if (!res.ok) throw new Error("讀取檔案失敗");
-                    return res.text();
-                })
-                .then(text => {
-                    navigator.clipboard.writeText(text).then(() => {
-                        showToast("📋 自動化腳本內容已複製到您的剪貼簿！");
-                        showToast("💡 請點開瀏覽器 Tampermonkey ➔ 新增腳本 ➔ 貼上並按 Ctrl+S 存檔。");
-                    }).catch(err => {
-                        console.error(err);
-                        showToast("複製失敗，請手動開啟專案下的 gemini_auto_synth.user.js 檔案進行複製", "error");
-                    });
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast("⚠️ 無法獲取本機服務腳本，請直接開啟本機 gemini_auto_synth.user.js 複製內容", "error");
-                });
-        }
-
         async function triggerGeminiQuickSynth() {
             startHUDLoading();
-            showGeminiWorkflowGuide();
             addHUDLine("✨ [Step 1] 正在啟動 Gemini 一鍵多圖自動合成...", 100);
             addHUDLine("📦 正在打包主畫面已穿戴的服飾與配件單品...", 200);
             
@@ -4565,7 +4468,6 @@
             setAIComment("<strong>🎉 已成功將 Gemini 線上自動合成圖帶回系統！</strong>模特兒已穿戴合成後的裝扮。您可以繼續在上面拖曳新配件或進行新搭配！");
             
             showToast("🎉 已成功將 Gemini 自動合成圖帶回系統並置換模特兒！");
-            hideGeminiWorkflowGuide();
             
             // 4. 加入穿搭日誌
             const canvas = document.createElement('canvas');
