@@ -309,10 +309,10 @@
             transform: translateY(-50%) scale(0.95);
         }
         .model-switch-left {
-            left: 1.25rem;
+            left: -25px;
         }
         .model-switch-right {
-            right: 1.25rem;
+            right: -25px;
         }
 
         .scene-bg {
@@ -325,16 +325,26 @@
             transition: 1.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .model-stage {
+            position: relative;
+            height: 96%;
+            width: 330px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+            bottom: 10px;
+        }
+
         #mannequin-scaler {
             position: relative;
-            height: 96%; /* Enlarged model scale slightly */
-            width: 330px; /* Enlarged model scale slightly */
+            height: 100%;
+            width: 100%;
             display: flex;
             justify-content: center;
             z-index: 5;
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
             transform-origin: bottom center;
-            bottom: 10px; /* Centered model vertically beautifully since buttons moved away */
         }
 
         .twin-head {
@@ -867,9 +877,14 @@
                 min-height: 50vh;
             }
 
-            #mannequin-scaler {
+            .model-stage {
                 width: 220px;
                 height: 90%;
+            }
+
+            #mannequin-scaler {
+                width: 100% !important;
+                height: 100% !important;
             }
 
             .twin-head {
@@ -930,10 +945,10 @@
                 font-size: 1.4rem !important;
             }
             .model-switch-left {
-                left: 0.5rem !important;
+                left: 5px !important;
             }
             .model-switch-right {
-                right: 0.5rem !important;
+                right: 5px !important;
             }
             .hud-title { font-size: 0.65rem; }
             #hud-log-container { max-height: 80px; }
@@ -1058,8 +1073,11 @@
                 gap: 8px;
             }
 
-            #mannequin-scaler {
+            .model-stage {
                 width: 280px;
+            }
+            #mannequin-scaler {
+                width: 100% !important;
             }
 
             .hud-diagnostics {
@@ -1077,10 +1095,10 @@
                 font-size: 1.6rem !important;
             }
             .model-switch-left {
-                left: 0.75rem !important;
+                left: 8px !important;
             }
             .model-switch-right {
-                right: 0.75rem !important;
+                right: 8px !important;
             }
         }
 
@@ -1092,8 +1110,11 @@
                 grid-template-columns: 420px 1fr;
             }
 
-            #mannequin-scaler {
+            .model-stage {
                 width: 380px;
+            }
+            #mannequin-scaler {
+                width: 100% !important;
             }
 
             .layer {
@@ -1588,16 +1609,17 @@
                     <div id="hud-log-container"></div>
                 </div>
                 
-                <!-- Model switcher semi-transparent left/right buttons -->
-                <button class="model-switch-btn model-switch-left" onclick="prevModel()" title="上一個模特兒">‹</button>
-                <button class="model-switch-btn model-switch-right" onclick="nextModel()" title="下一個模特兒">›</button>
-                
-                <div id="mannequin-scaler">
-                    <div id="user-head" class="twin-head" style="display: none;">
-                        <img id="twin-face-img" src="">
-                        <div class="beauty-glow"></div>
+                <!-- Model Stage containing the mannequin and flanking switcher buttons -->
+                <div class="model-stage">
+                    <button class="model-switch-btn model-switch-left" onclick="prevModel()" title="上一個模特兒">‹</button>
+                    <div id="mannequin-scaler">
+                        <div id="user-head" class="twin-head" style="display: none;">
+                            <img id="twin-face-img" src="">
+                            <div class="beauty-glow"></div>
+                        </div>
+                        <img id="base-model" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; display:none;">
                     </div>
-                    <img id="base-model" style="position:absolute; inset:0; width:100%; height:100%; object-fit:contain; z-index:1; display:none;">
+                    <button class="model-switch-btn model-switch-right" onclick="nextModel()" title="下一個模特兒">›</button>
                 </div>
 
                 <!-- 已搭配服飾窗格框架 (與模特兒保持間隔且垂直上下排列) -->
