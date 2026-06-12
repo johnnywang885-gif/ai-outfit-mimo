@@ -87,6 +87,26 @@ class VestisHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.wfile.write(json.dumps(payload_data).encode('utf-8'))
             else:
                 self.wfile.write(json.dumps({}).encode('utf-8'))
+        elif self.path == '/api/list_models':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            try:
+                models_dir = os.path.join(os.getcwd(), '穿搭照片', '女模特兒')
+                if os.path.exists(models_dir):
+                    valid_exts = {'.png', '.jpg', '.jpeg', '.webp', '.bmp'}
+                    files = []
+                    for f in os.listdir(models_dir):
+                        ext = os.path.splitext(f.lower())[1]
+                        if ext in valid_exts:
+                            files.append(f"穿搭照片/女模特兒/{f}")
+                    files.sort()
+                    self.wfile.write(json.dumps({"models": files}).encode('utf-8'))
+                else:
+                    self.wfile.write(json.dumps({"models": []}).encode('utf-8'))
+            except Exception as e:
+                print(f"[VESTIS SERVER] Error listing models: {e}")
+                self.wfile.write(json.dumps({"error": str(e), "models": []}).encode('utf-8'))
         elif self.path == '/api/get_result':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')

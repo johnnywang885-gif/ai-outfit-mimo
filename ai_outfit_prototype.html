@@ -7,17 +7,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-deep: #070709; /* Deep luxury obsidian */
-            --glass-bg: rgba(20, 20, 25, 0.65);
-            --glass-border: rgba(197, 168, 128, 0.12); /* Fine champagne gold outline */
-            --accent: #c5a880; /* Elegant champagne gold */
-            --accent-glow: rgba(197, 168, 128, 0.2);
-            --cyan: #dfba73; /* Rich gold accent */
-            --cyan-glow: rgba(223, 186, 115, 0.25);
-            --text-p: #a3a3a8; /* Muted soft grey text */
-            --text-h: #f1efea; /* Warm luxury ivory/white */
-            --success: #b5a27f; /* Luxury muted gold success */
-            --danger: #b22222; /* Royal ruby red danger */
+            --bg-deep: #0e0a0d; /* Luxurious ultra-dark plum black */
+            --glass-bg: rgba(24, 15, 22, 0.68); /* Dreamy semitransparent plum glass */
+            --glass-border: rgba(232, 167, 185, 0.15); /* Fine rose gold outline */
+            --accent: #e8a7b9; /* Chic rose-gold / blush pink */
+            --accent-glow: rgba(232, 167, 185, 0.25); /* Dreamy rose glow */
+            --cyan: #f7d1cd; /* Romantic pastel peach blossom */
+            --cyan-glow: rgba(247, 209, 205, 0.3); /* Warm soft peach glow */
+            --text-p: #c5b5bd; /* Elegant soft mauve grey */
+            --text-h: #fdfafb; /* Luminous rose-ivory white */
+            --success: #d29ca9; /* Feminine soft rose gold success */
+            --danger: #e05c75; /* Vibrant wild berry red danger */
         }
 
         /* RESET & BASE */
@@ -51,8 +51,8 @@
 
         body {
             background-image: 
-                radial-gradient(circle at 15% 15%, rgba(197, 168, 128, 0.05) 0%, transparent 45%),
-                radial-gradient(circle at 85% 85%, rgba(223, 186, 115, 0.04) 0%, transparent 45%);
+                radial-gradient(circle at 15% 15%, rgba(232, 167, 185, 0.08) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(247, 209, 205, 0.06) 0%, transparent 45%);
         }
 
         /* 100vh SCROLLBAR-FREE SHELL */
@@ -67,7 +67,7 @@
         /* SIDEBARS */
         .col-left {
             height: 100vh;
-            background: rgba(10, 10, 12, 0.85); /* Deep luxury obsidian */
+            background: rgba(22, 14, 20, 0.88); /* Deep luxury plum */
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
@@ -98,7 +98,7 @@
         .brand span {
             color: var(--accent);
             font-weight: 300;
-            text-shadow: 0 0 10px rgba(197, 168, 128, 0.2);
+            text-shadow: 0 0 10px rgba(232, 167, 185, 0.2);
         }
         
         /* LUXURY SIDEBAR TABS & PANELS */
@@ -126,9 +126,9 @@
         }
         .sidebar-nav-btn.active {
             background: var(--accent);
-            color: #121214 !important;
+            color: #1d0e16 !important;
             font-weight: 700;
-            box-shadow: 0 4px 12px rgba(197, 168, 128, 0.25);
+            box-shadow: 0 4px 12px var(--accent-glow);
         }
         .panel-section-title {
             font-family: 'Cormorant Garamond', serif;
@@ -169,7 +169,7 @@
         }
         .tab-btn.active {
             background: var(--accent);
-            color: #121214;
+            color: #1d0e16;
             box-shadow: 0 4px 12px var(--accent-glow);
             font-weight: 800;
         }
@@ -214,7 +214,7 @@
         .item-card:hover {
             border-color: var(--cyan);
             transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 8px 20px rgba(197, 168, 128, 0.15);
+            box-shadow: 0 8px 20px rgba(232, 167, 185, 0.15);
             background: rgba(255, 255, 255, 0.04);
         }
         .item-card img {
@@ -248,7 +248,7 @@
             height: 100vh;
             overflow: hidden;
             padding: 1.5rem;
-            background: #030712;
+            background: var(--bg-deep);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -256,7 +256,7 @@
 
         /* VISUALIZER */
         .visualizer {
-            background: #080c14;
+            background: rgba(19, 9, 16, 0.95);
             border: 1px solid var(--glass-border);
             border-radius: 30px;
             width: 100%;
@@ -299,10 +299,10 @@
             text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
         }
         .model-switch-btn:hover {
-            background: rgba(197, 168, 128, 0.65);
+            background: rgba(232, 167, 185, 0.65);
             border-color: var(--cyan);
             color: #ffffff;
-            box-shadow: 0 0 15px rgba(197, 168, 128, 0.5);
+            box-shadow: 0 0 15px rgba(232, 167, 185, 0.5);
             transform: translateY(-50%) scale(1.1);
         }
         .model-switch-btn:active {
@@ -431,7 +431,7 @@
         .btn-prime:hover { 
             filter: brightness(1.1); 
             transform: translateY(-2px); 
-            box-shadow: 0 6px 20px rgba(197, 168, 128, 0.4);
+            box-shadow: 0 6px 20px rgba(232, 167, 185, 0.4);
         }
         .btn-prime:active {
             transform: translateY(0);
@@ -490,18 +490,18 @@
             font-weight: 700;
             cursor: pointer;
             transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(197, 168, 128, 0.25);
+            box-shadow: 0 4px 15px rgba(232, 167, 185, 0.25);
             flex-shrink: 0;
         }
         .btn-report-trigger:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 20px rgba(197, 168, 128, 0.4);
+            box-shadow: 0 6px 20px rgba(232, 167, 185, 0.4);
         }
 
         /* TWIN PORTRAIT CARD */
         .twin-card {
-            background: linear-gradient(135deg, rgba(197, 168, 128, 0.1) 0%, rgba(223, 186, 115, 0.03) 100%);
-            border: 1px solid rgba(197, 168, 128, 0.2);
+            background: linear-gradient(135deg, rgba(232, 167, 185, 0.1) 0%, rgba(223, 186, 115, 0.03) 100%);
+            border: 1px solid rgba(232, 167, 185, 0.2);
             border-radius: 20px;
             padding: 1.25rem;
             margin-bottom: 1.5rem;
@@ -517,7 +517,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(197, 168, 128, 0.08) 0%, transparent 60%);
+            background: radial-gradient(circle, rgba(232, 167, 185, 0.08) 0%, transparent 60%);
             pointer-events: none;
         }
 
@@ -596,8 +596,8 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: #dfba73;
-            box-shadow: 0 0 20px #dfba73, 0 0 35px rgba(223, 186, 115, 0.6), 0 0 50px rgba(223, 186, 115, 0.4);
+            background: var(--cyan);
+            box-shadow: 0 0 20px var(--cyan), 0 0 35px var(--cyan-glow), 0 0 50px rgba(247, 209, 205, 0.15);
             z-index: 101;
             animation: laserSweep 3s infinite ease-in-out;
         }
@@ -616,25 +616,25 @@
             top: 1.25rem;
             right: 1.25rem;
             width: 320px;
-            background: rgba(10, 10, 12, 0.9);
-            border: 1px solid rgba(223, 186, 115, 0.3);
+            background: rgba(22, 14, 20, 0.92);
+            border: 1px solid rgba(247, 209, 205, 0.3);
             border-radius: 16px;
             padding: 1.1rem;
-            color: #dfba73;
+            color: var(--cyan);
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.7rem;
             line-height: 1.6;
             z-index: 102;
             display: none; /* Controlled by JS */
             backdrop-filter: blur(15px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(223, 186, 115, 0.05);
-            text-shadow: 0 0 6px rgba(223, 186, 115, 0.4);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 0 15px rgba(247, 209, 205, 0.05);
+            text-shadow: 0 0 6px rgba(247, 209, 205, 0.4);
         }
         .hud-payment-warning {
             color: #ffd60a;
             font-size: 0.85rem;
             font-weight: 700;
-            border-bottom: 1px dashed rgba(223, 186, 115, 0.3);
+            border-bottom: 1px dashed rgba(247, 209, 205, 0.3);
             padding-bottom: 8px;
             margin-bottom: 8px;
             line-height: 1.4;
@@ -644,13 +644,13 @@
         .hud-title {
             font-weight: 800;
             font-size: 0.75rem;
-            border-bottom: 1px solid rgba(223, 186, 115, 0.3);
+            border-bottom: 1px solid rgba(247, 209, 205, 0.3);
             padding-bottom: 5px;
             margin-bottom: 8px;
             letter-spacing: 0.5px;
             display: flex;
             justify-content: space-between;
-            color: #dfba73;
+            color: var(--cyan);
         }
         .hud-line {
             margin-bottom: 6px;
@@ -693,7 +693,7 @@
 
         .modal {
             background: rgba(15, 23, 42, 0.75);
-            border: 1px solid rgba(197, 168, 128, 0.18);
+            border: 1px solid rgba(232, 167, 185, 0.18);
             border-radius: 26px;
             padding: 2.25rem;
             max-width: 550px;
@@ -757,7 +757,7 @@
             transition: 0.4s cubic-bezier(0.1, 0.8, 0.3, 1);
             font-weight: 700;
             font-size: 0.85rem;
-            box-shadow: 0 6px 20px rgba(197, 168, 128, 0.3);
+            box-shadow: 0 6px 20px rgba(232, 167, 185, 0.3);
             pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
@@ -1305,7 +1305,7 @@
             align-items: center;
             z-index: 10;
             background: rgba(10, 10, 12, 0.45);
-            border: 1px solid rgba(197, 168, 128, 0.1);
+            border: 1px solid rgba(232, 167, 185, 0.1);
             border-radius: 20px;
             padding: 12px 6px;
             backdrop-filter: blur(8px);
@@ -1327,7 +1327,7 @@
             width: 100%;
             height: 100%;
             background: rgba(255, 255, 255, 0.02);
-            border: 1.5px dashed rgba(197, 168, 128, 0.2);
+            border: 1.5px dashed rgba(232, 167, 185, 0.2);
             border-radius: 14px;
             display: flex;
             align-items: center;
@@ -1470,7 +1470,7 @@
             <div id="sidebar-wardrobe-panel" class="sidebar-panel" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                 <div style="display: flex; gap: 8px; margin-bottom: 1.25rem; flex-shrink: 0;">
                     <button class="btn-prime" style="flex: 1; padding: 11px; margin-bottom: 0;" onclick="triggerUpload()">📁 上傳</button>
-                    <button class="btn-prime" style="flex: 1; padding: 11px; margin-bottom: 0; background: var(--cyan); color: #121214; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
+                    <button class="btn-prime" style="flex: 1; padding: 11px; margin-bottom: 0; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
                 </div>
                 <input type="file" id="file-input" hidden accept="image/*">
                 
@@ -1499,7 +1499,7 @@
                 <!-- Premium Twin Card -->
                 <div class="twin-card">
                     <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #090d16; border: 2px solid var(--cyan); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--cyan-glow);">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: #1c1119; border: 2px solid var(--cyan); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px var(--cyan-glow);">
                             <img id="profile-thumb" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
                             <span id="profile-placeholder" style="font-size: 1.3rem;">👤</span>
                         </div>
@@ -1509,8 +1509,8 @@
                         </div>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn-prime" style="flex:1; background: transparent; border: 1px solid rgba(197,168,128,0.3); color: var(--accent); padding: 8px; font-size: 0.65rem; margin-bottom: 0; box-shadow: none;" onclick="openProfileModal()">建立分身</button>
-                        <button class="btn-prime" style="flex:1.5; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; padding: 8px; font-size: 0.65rem; margin-bottom: 0; border: none;" onclick="manualFaceSwap()">執行人臉置換</button>
+                        <button class="btn-prime" style="flex:1; background: transparent; border: 1px solid rgba(232, 167, 185, 0.3); color: var(--accent); padding: 8px; font-size: 0.65rem; margin-bottom: 0; box-shadow: none;" onclick="openProfileModal()">建立分身</button>
+                        <button class="btn-prime" style="flex:1.5; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #1d0e16; padding: 8px; font-size: 0.65rem; margin-bottom: 0; border: none;" onclick="manualFaceSwap()">執行人臉置換</button>
                     </div>
                 </div>
 
@@ -1564,7 +1564,7 @@
                 <h1 style="font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;">虛擬穿戴展示區</h1>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
-                    <button class="btn-settings" style="background: rgba(197, 168, 128, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
+                    <button class="btn-settings" style="background: rgba(232, 167, 185, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
@@ -1728,7 +1728,7 @@
 
     <!-- MODAL: QUICK MULTI-IMAGE SYNTHESIS -->
     <div class="overlay" id="quick-synth-overlay" style="display: none;">
-        <div class="modal" style="max-width: 650px; padding: 1.5rem; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(197, 168, 128, 0.3); border-radius: 26px; box-shadow: 0 0 30px rgba(197, 168, 128, 0.15);">
+        <div class="modal" style="max-width: 650px; padding: 1.5rem; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(232, 167, 185, 0.3); border-radius: 26px; box-shadow: 0 0 30px rgba(232, 167, 185, 0.15);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem;">
                 <h3 style="color: var(--cyan); margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;">📸 一鍵多圖快速合成試穿</h3>
                 <button onclick="closeQuickSynthModal()" style="background:transparent; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button>
@@ -2254,32 +2254,79 @@
 
 
         // --- MODEL SWITCHER ---
-        const modelFiles = [
-            '穿搭照片/模特兒/model1.png',
-            '穿搭照片/模特兒/model2.png',
-            '穿搭照片/模特兒/model3.png',
-            '穿搭照片/模特兒/model4.png',
-            '穿搭照片/模特兒/model5.png',
-            '穿搭照片/模特兒/model7.png',
-            '穿搭照片/模特兒/model9.png',
-            '穿搭照片/模特兒/model10.png',
-            '穿搭照片/模特兒/model11.png',
-            '穿搭照片/模特兒/model15.png',
-            '穿搭照片/模特兒/model16.png',
-            '穿搭照片/模特兒/model17.png',
-            '穿搭照片/模特兒/model26.png',
-            '穿搭照片/模特兒/model27.png',
-            '穿搭照片/模特兒/model28.png',
-            '穿搭照片/模特兒/model29.png',
-            '穿搭照片/模特兒/model32.png',
-            '穿搭照片/模特兒/model33.png',
-            '穿搭照片/模特兒/model34.png',
-            '穿搭照片/模特兒/model35.png',
-            '穿搭照片/模特兒/model38.png',
-            '穿搭照片/模特兒/model42.png',
-            '穿搭照片/模特兒/model44.png'
+        let modelFiles = [
+            '穿搭照片/女模特兒/ahmadreza-najafi-Hoggg56L_ZY-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/ahmadreza-najafi-QWsXDqB_Yto-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-roosso---nE-ucxDLA-unsplash-removebg-preview (1).png',
+            '穿搭照片/女模特兒/alex-roosso---nE-ucxDLA-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-roosso--VPf5OJRC6U-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-7TZCX-4s6Os-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-9vdEuoiszKA-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-Ky_zRegFuc8-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-cef6A8m3Fuc-unsplash__1_-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-ex-zvOHhtxQ-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alex-shaw-z2U6YqLC3pc-unsplash-removebg-preview (1).png',
+            '穿搭照片/女模特兒/alex-shaw-z2U6YqLC3pc-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alexander-mass-j_aoTGE3IIk-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/alireza-skndari-YZYyBjZ_SRM-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/anes-hamzic-AFhg4Ve6vxg-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/brian-lawson-LXzRbd_SCZ8-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/brian-lawson-TB-QxUimRY8-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/diana-shchurova-R8BB9uDpVLc-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/dominik-day-4PScH9qmA-M-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/dominik-day-7Mb77WYzLbw-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/gaspar-zaldo-jSPY11zhS1c-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/german-lopez-rdDRS65kE58-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/hank-film-wdrdLxo-TCU-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/happy-face-emoji-IjOfyci-EO0-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/jon-ly-rwmPLsJCc08-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/laura-chouette-Gu-c15DolOM-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/laura-oliveira-v37kJeBUBE4-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/lhon-karwan-09NtgjxfMyY-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/logan-weaver-lgnwvr-rsQGP0hiRWw-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/mahmoud-gad-BnS3iWJkv2E-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/mahmoud-gad-Rmh6HbfooiM-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/mahmoud-gad-a2antzvS6bU-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/marcel-strauss-VEC_61hEhyI-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/marcel-strauss-x0YJuVfzFsI-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/marco-diaz-R8W4-argTHM-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/margo-evardson-SzGLx1HWS7I-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/mike-jumapao-z9NPuGQcIz0-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/mohsen-ameri-ky89TcC0KHg-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/nassim-boughazi-dodzmVtjoKs-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/nathan-khant-PpLkFQk5is4-unsplash-removebg-preview (1).png',
+            '穿搭照片/女模特兒/nikita-shirokov-yIVAanJ1Pn4-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/olga-zhuravleva-A3MleA0jtoE-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/ompia-_-DJhLAG30SFQ-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/pradeep-ranjan-xmg_h8EbvzQ-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/prateek-saxena-2pq1ehTdOK0-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/rafik-wahba-PVmfxIvZuR8-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/sergei-nikulin-GQGiVbP_bHQ-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/shirish-suwal-bL6qk2H_o58-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/sobhan-joodi-5kAckll42NQ-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/venti-views-JdOIiCucLkI-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/visualsofdana-9AdQ11oWBl0-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/win-min-aung-xBfwhvecqXs-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/xu-duo-XnKXLc16nP4-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/zana-pq-iK7eKbbsxjM-unsplash-removebg-preview.png'
         ];
         let currentModelIndex = Math.floor(Math.random() * modelFiles.length);
+
+        async function loadDynamicModels() {
+            try {
+                const response = await fetch('/api/list_models');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.models && data.models.length > 0) {
+                        modelFiles = data.models;
+                        currentModelIndex = Math.floor(Math.random() * modelFiles.length);
+                        console.log("[VESTIS AI] Successfully loaded dynamic models from server:", modelFiles.length);
+                    }
+                }
+            } catch (err) {
+                console.warn("[VESTIS AI] Local server not running or list_models failed, using hardcoded fallback models.");
+            }
+        }
 
         async function initRandomModel() {
             const baseImg = document.getElementById('base-model');
@@ -2758,7 +2805,7 @@
                 const defaultRec = findItemById(4021) || defaultWardrobe[0];
                 const purchaseUrl = getSimplifiedPurchaseLink(defaultRec);
                 return `
-                    <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
+                    <div style="background: rgba(232, 167, 185, 0.05); border: 1px dashed rgba(232, 167, 185, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
                         <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
                             <img src="${defaultRec.img}" draggable="true" ondragstart="event.dataTransfer.setData('text', '${defaultRec.id}'); event.dataTransfer.setData('from_grid', 'true');" style="max-width: 90%; max-height: 90%; object-fit: contain; cursor: grab;" title="拖曳此單品至展示區進行試穿">
                         </div>
@@ -2768,7 +2815,7 @@
                                 您目前尚未搭配單品。AI 推薦您試試這款高訂質感 **${defaultRec.name}**，百搭剪裁適合各種場合！
                             </p>
                             <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                                <button onclick="wearRecommendedItem(${defaultRec.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
+                                <button onclick="wearRecommendedItem(${defaultRec.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #1d0e16; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
                                 <a href="${purchaseUrl}" target="_blank" style="font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買 ➔</a>
                             </div>
                         </div>
@@ -2795,7 +2842,7 @@
             const purchaseUrl = getSimplifiedPurchaseLink(recItem);
 
             return `
-                <div style="background: rgba(197, 168, 128, 0.05); border: 1px dashed rgba(197, 168, 128, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
+                <div style="background: rgba(232, 167, 185, 0.05); border: 1px dashed rgba(232, 167, 185, 0.3); padding: 1.25rem; border-radius: 18px; margin-top: 1.25rem; display: flex; gap: 15px; align-items: center;">
                     <div style="width: 70px; height: 70px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
                         <img src="${recItem.img}" draggable="true" ondragstart="event.dataTransfer.setData('text', '${recItem.id}'); event.dataTransfer.setData('from_grid', 'true');" style="max-width: 90%; max-height: 90%; object-fit: contain; cursor: grab;" title="拖曳此單品至展示區進行試穿">
                     </div>
@@ -2805,7 +2852,7 @@
                             建議將當前穿戴的 **${currentItem.name || catLabels[targetCat]}** 替換為 **${recItem.name}**。此單品的剪裁與配色能與您的其他服飾形成更有層次的視覺光澤，提升整體品味。
                         </p>
                         <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                            <button onclick="wearRecommendedItem(${recItem.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
+                            <button onclick="wearRecommendedItem(${recItem.id})" class="btn-prime" style="padding: 5px 12px; font-size: 0.7rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #1d0e16; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; width: auto; height: 26px; box-shadow: 0 4px 10px var(--accent-glow); display: inline-flex; align-items: center; justify-content: center;">👗 立即試穿</button>
                             <a href="${purchaseUrl}" target="_blank" style="font-size: 0.75rem; color: var(--cyan); text-decoration: underline; font-weight: 800;">🛍️ 前往購買 ➔</a>
                         </div>
                     </div>
@@ -3146,7 +3193,7 @@
                 const item = findItemById(id);
                 if (item) {
                     const div = document.createElement('div');
-                    div.style.cssText = 'aspect-ratio:1; background:white; border-radius:12px; overflow:hidden; border:1px solid rgba(197, 168, 128, 0.25); cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; padding:5px;';
+                    div.style.cssText = 'aspect-ratio:1; background:white; border-radius:12px; overflow:hidden; border:1px solid rgba(232, 167, 185, 0.25); cursor:pointer; position:relative; display:flex; align-items:center; justify-content:center; padding:5px;';
                     div.innerHTML = `
                         <img src="${item.img}" style="max-width:90%; max-height:90%; object-fit:contain;">
                         <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(3,7,18,0.8); color:white; font-size:9px; padding:4px; text-align:center; font-weight:700;">${item.price}</div>
@@ -4176,10 +4223,10 @@
             list.innerHTML = '';
             [...outfitLogs].reverse().forEach(log => {
                 const div = document.createElement('div');
-                div.style.cssText = 'aspect-ratio:3/4; background:#090d16; border-radius:12px; overflow:hidden; border:1px solid rgba(6,182,212,0.15); cursor:pointer; position:relative;';
+                div.style.cssText = 'aspect-ratio:3/4; background:#1c1119; border-radius:12px; overflow:hidden; border:1px solid rgba(232,167,185,0.15); cursor:pointer; position:relative;';
                 div.innerHTML = `
                     <img src="${log.img}" style="width:100%; height:100%; object-fit:cover;">
-                    <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(3,7,18,0.85); color:var(--text-p); font-size:8px; padding:6px; text-align:center; font-weight:700;">${new Date(log.time).toLocaleDateString()}</div>
+                    <div style="position:absolute; bottom:0; left:0; right:0; background:rgba(22,14,20,0.88); color:var(--text-p); font-size:8px; padding:6px; text-align:center; font-weight:700;">${new Date(log.time).toLocaleDateString()}</div>
                 `;
                 div.onclick = () => openLogViewer(log.id);
                 list.appendChild(div);
@@ -4331,7 +4378,11 @@
         initWeather();
         initProfile();
         initOutfitLog();
-        initRandomModel();
+        // Dynamic model loading support (loads files directly from the directory if server is active)
+        (async function() {
+            await loadDynamicModels();
+            initRandomModel();
+        })();
 
         // 偵測本地伺服器是否已啟動，給予人性化引導
         fetch('/api/get_payload').catch(err => {
@@ -5415,13 +5466,13 @@
             
             <!-- Animated Guide Assistant Mini Character -->
             <div style="display: flex; align-items: center; gap: 12px; margin-top: 5px; background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.05);">
-                <div class="guide-avatar-anim" style="font-size: 2rem;">🧙‍♂️</div>
+                <div class="guide-avatar-anim" style="font-size: 2rem;">👩‍🎨</div>
                 <div id="guide-assistant-text" style="font-size: 0.75rem; color: var(--cyan); font-weight: 700; line-height: 1.35; flex: 1;">嗨！我是您的 AI 時尚管家，跟我一起走吧！</div>
             </div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px;">
                 <button id="guide-btn-prev" onclick="prevGuideStep()" style="background: rgba(255,255,255,0.04); border: 1px solid var(--glass-border); color: #fff; border-radius: 100px; padding: 7px 16px; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: 0.2s; flex: 1;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.04)'">上一步</button>
-                <button id="guide-btn-next" onclick="nextGuideStep()" style="background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #121214; border: none; border-radius: 100px; padding: 8px 18px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: 0.2s; flex: 1.5; box-shadow: 0 4px 15px rgba(99,102,241,0.3);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">下一步 ➔</button>
+                <button id="guide-btn-next" onclick="nextGuideStep()" style="background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #1d0e16; border: none; border-radius: 100px; padding: 8px 18px; font-size: 0.78rem; font-weight: 800; cursor: pointer; transition: 0.2s; flex: 1.5; box-shadow: 0 4px 15px var(--cyan-glow);" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='none'">下一步 ➔</button>
             </div>
         </div>
     </div>
