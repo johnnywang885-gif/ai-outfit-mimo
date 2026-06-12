@@ -1568,35 +1568,17 @@
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
-                            <optgroup label="北部地區">
-                                <option value="Taipei">台北市</option>
-                                <option value="New Taipei">新北市</option>
-                                <option value="Keelung">基隆市</option>
-                                <option value="Taoyuan">桃園市</option>
-                                <option value="Hsinchu City">新竹市</option>
-                                <option value="Hsinchu">新竹縣</option>
+                            <optgroup label="都會與社交場合">
+                                <option value="Cafe">☕ 陽光下午茶 (Cafe)</option>
+                                <option value="Gallery">🎨 藝文展覽 (Gallery)</option>
+                                <option value="Boutique">🛍️ 精品大道 (Boutique)</option>
+                                <option value="Rooftop">🍸 霓虹酒吧 (Rooftop Bar)</option>
                             </optgroup>
-                            <optgroup label="中部地區">
-                                <option value="Miaoli">苗栗縣</option>
-                                <option value="Taichung">台中市</option>
-                                <option value="Changhua">彰化縣</option>
-                                <option value="Nantou">南投縣</option>
-                                <option value="Yunlin">雲林縣</option>
-                            </optgroup>
-                            <optgroup label="南部地區">
-                                <option value="Chiayi City">嘉義市</option>
-                                <option value="Chiayi">嘉義縣</option>
-                                <option value="Tainan">台南市</option>
-                                <option value="Kaohsiung">高雄市</option>
-                                <option value="Pingtung">屏東縣</option>
-                            </optgroup>
-                            <optgroup label="東部及離島">
-                                <option value="Yilan">宜蘭縣</option>
-                                <option value="Hualien">花蓮縣</option>
-                                <option value="Taitung">台東縣</option>
-                                <option value="Penghu">澎湖縣</option>
-                                <option value="Kinmen">金門縣</option>
-                                <option value="Lienchiang">連江縣</option>
+                            <optgroup label="戶外與特殊場合">
+                                <option value="Glamping">🏕️ 奢華露營 (Glamping)</option>
+                                <option value="Beach">🏖️ 度假海灘 (Resort Beach)</option>
+                                <option value="Business">💼 時尚商務 (Business)</option>
+                                <option value="Wedding">💍 婚禮宴會 (Wedding)</option>
                             </optgroup>
                         </select>
                         <span style="position: absolute; right: 10px; font-size: 0.6rem; pointer-events: none;">▼</span>
@@ -3555,30 +3537,16 @@
             }
         }
 
-        // --- 台灣縣市地理座標與即時天氣對照表 ---
+        // --- 女性時尚生活與社交場合座標對照表 ---
         const cityCoords = {
-            "Taipei": { lat: 25.0330, lon: 121.5654 },
-            "New Taipei": { lat: 25.0170, lon: 121.4628 },
-            "Keelung": { lat: 25.1283, lon: 121.7419 },
-            "Taoyuan": { lat: 24.9936, lon: 121.3010 },
-            "Hsinchu City": { lat: 24.8138, lon: 120.9675 },
-            "Hsinchu": { lat: 24.8383, lon: 121.0177 },
-            "Miaoli": { lat: 24.5602, lon: 120.8208 },
-            "Taichung": { lat: 24.1477, lon: 120.6736 },
-            "Changhua": { lat: 24.0519, lon: 120.5161 },
-            "Nantou": { lat: 23.9061, lon: 120.6869 },
-            "Yunlin": { lat: 23.7092, lon: 120.4313 },
-            "Chiayi City": { lat: 23.4801, lon: 120.4491 },
-            "Chiayi": { lat: 23.4518, lon: 120.2555 },
-            "Tainan": { lat: 22.9908, lon: 120.2133 },
-            "Kaohsiung": { lat: 22.6273, lon: 120.3014 },
-            "Pingtung": { lat: 22.6762, lon: 120.4883 },
-            "Yilan": { lat: 24.7021, lon: 121.7378 },
-            "Hualien": { lat: 23.9871, lon: 121.6016 },
-            "Taitung": { lat: 22.7560, lon: 121.1530 },
-            "Penghu": { lat: 23.5711, lon: 119.5793 },
-            "Kinmen": { lat: 24.4498, lon: 118.3732 },
-            "Lienchiang": { lat: 26.1519, lon: 119.9392 }
+            "Cafe": { lat: 25.0330, lon: 121.5654 },     // 台北
+            "Gallery": { lat: 25.0330, lon: 121.5654 },  // 台北
+            "Boutique": { lat: 24.1477, lon: 120.6736 }, // 台中
+            "Rooftop": { lat: 25.0330, lon: 121.5654 },  // 台北
+            "Glamping": { lat: 23.9061, lon: 120.6869 }, // 南投
+            "Beach": { lat: 21.9427, lon: 120.7965 },    // 墾丁
+            "Business": { lat: 25.0330, lon: 121.5654 }, // 台北
+            "Wedding": { lat: 25.0330, lon: 121.5654 }   // 台北
         };
 
         // --- 將 WMO Weather Code 轉為圖標與文字描述 ---
@@ -3594,63 +3562,35 @@
         }
 
         let currentWeatherData = { 
-            temp: "22°C", 
-            condition: "☁️ 多雲", 
-            city: "Taipei",
-            cityName: "台北市",
-            landmark: "台北101信義商圈"
+            temp: "24°C", 
+            condition: "⛅ 舒適多雲", 
+            city: "Cafe",
+            cityName: "陽光咖啡廳",
+            landmark: "法式網美下午茶區"
         };
 
         async function updateWeatherByCity(city) {
             const weatherDisplay = document.getElementById('weather-display');
             const sceneBg = document.querySelector('.scene-bg');
             
-            // ✅ 使用已成功下載至本機端「穿搭照片/背景/」目錄的超高畫質經典地標照片，保證 100% 成功快速載入且完全防 CORS 與熱連線阻擋
+            // ✅ 使用已成功下載至本機端「穿搭照片/背景/」目錄的超高畫質場景照片，保證 100% 成功快速載入且完全防 CORS 與熱連線阻擋
             const mockWeather = {
-                "Taipei": { cityName: "台北市", landmark: "台北101信義商圈", temp: "22°C", condition: "☁️ 多雲",
-                    bg: "穿搭照片/背景/taipei.jpg" },
-                "New Taipei": { cityName: "新北市", landmark: "九份山城老街", temp: "21°C", condition: "🌦️ 陣雨",
-                    bg: "穿搭照片/背景/new_taipei.jpg" },
-                "Keelung": { cityName: "基隆市", landmark: "正濱漁港彩色屋", temp: "19°C", condition: "🌧️ 雨",
-                    bg: "穿搭照片/背景/keelung.jpg" },
-                "Taoyuan": { cityName: "桃園市", landmark: "石門水庫風景區", temp: "23°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/taoyuan.jpg" },
-                "Hsinchu City": { cityName: "新竹市", landmark: "新竹東門城 (迎曦門)", temp: "22°C", condition: "🌬️ 強風",
-                    bg: "穿搭照片/背景/hsinchu_city.jpg" },
-                "Hsinchu": { cityName: "新竹縣", landmark: "司馬庫斯巨木群", temp: "21°C", condition: "🌬️ 強風",
-                    bg: "穿搭照片/背景/hsinchu.jpg" },
-                "Miaoli": { cityName: "苗栗縣", landmark: "勝興火車站", temp: "23°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/miaoli.jpg" },
-                "Taichung": { cityName: "台中市", landmark: "高美濕地木棧道", temp: "25°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/taichung.jpg" },
-                "Changhua": { cityName: "彰化縣", landmark: "鹿港龍山寺", temp: "25°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/changhua.jpg" },
-                "Nantou": { cityName: "南投縣", landmark: "日月潭國家風景區", temp: "20°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/nantou.jpg" },
-                "Yunlin": { cityName: "雲林縣", landmark: "西螺大橋", temp: "26°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/yunlin.jpg" },
-                "Chiayi City": { cityName: "嘉義市", landmark: "檜意森活村", temp: "25°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/chiayi_city.jpg" },
-                "Chiayi": { cityName: "嘉義縣", landmark: "阿里山森林鐵路", temp: "22°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/chiayi.jpg" },
-                "Tainan": { cityName: "台南市", landmark: "安平古堡與赤崁樓", temp: "27°C", condition: "☀️ 炎熱",
-                    bg: "穿搭照片/背景/tainan.jpg" },
-                "Kaohsiung": { cityName: "高雄市", landmark: "蓮池潭龍虎塔", temp: "29°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/kaohsiung.jpg" },
-                "Pingtung": { cityName: "屏東縣", landmark: "墾丁大灣沙灘", temp: "30°C", condition: "☀️ 炎熱",
-                    bg: "穿搭照片/背景/pingtung.jpg" },
-                "Yilan": { cityName: "宜蘭縣", landmark: "龜山島海景", temp: "22°C", condition: "🌦️ 陣雨",
-                    bg: "穿搭照片/背景/yilan.jpg" },
-                "Hualien": { cityName: "花蓮縣", landmark: "太魯閣國家公園", temp: "23°C", condition: "☀️ 晴朗",
-                    bg: "穿搭照片/背景/hualien.jpg" },
-                "Taitung": { cityName: "台東縣", landmark: "三仙拱橋", temp: "24°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/taitung.jpg" },
-                "Penghu": { cityName: "澎湖縣", landmark: "七美雙心石滬", temp: "26°C", condition: "🌬️ 強風",
-                    bg: "穿搭照片/背景/penghu.jpg" },
-                "Kinmen": { cityName: "金門縣", landmark: "水頭聚落閩南古厝", temp: "21°C", condition: "⛅ 多雲",
-                    bg: "穿搭照片/背景/kinmen.jpg" },
-                "Lienchiang": { cityName: "連江縣", landmark: "馬祖北竿芹壁聚落", temp: "18°C", condition: "🌫️ 有霧",
-                    bg: "穿搭照片/背景/lienchiang.jpg" }
+                "Cafe": { cityName: "陽光咖啡廳", landmark: "法式網美下午茶區", temp: "24°C", condition: "⛅ 舒適多雲",
+                    bg: "穿搭照片/背景/cafe.png" },
+                "Gallery": { cityName: "當代美術館", landmark: "當代藝文特展廳", temp: "20°C", condition: "☁️ 微涼舒適",
+                    bg: "穿搭照片/背景/gallery.png" },
+                "Boutique": { cityName: "精品大道", landmark: "時尚精品林蔭街", temp: "26°C", condition: "☀️ 晴朗宜人",
+                    bg: "穿搭照片/背景/boutique.png" },
+                "Rooftop": { cityName: "霓虹酒吧", landmark: "高空霓虹落日景觀", temp: "21°C", condition: "🌌 微風夜景",
+                    bg: "穿搭照片/背景/rooftop.png" },
+                "Glamping": { cityName: "奢華營地", landmark: "山谷落羽松野餐區", temp: "22°C", condition: "🌬️ 微風徐徐",
+                    bg: "穿搭照片/背景/glamping.png" },
+                "Beach": { cityName: "渡假沙灘", landmark: "墾丁細白海岸線", temp: "30°C", condition: "☀️ 晴朗炎熱",
+                    bg: "穿搭照片/背景/beach.png" },
+                "Business": { cityName: "商務會所", landmark: "高空行政商務酒廊", temp: "22°C", condition: "❄️ 室內空調",
+                    bg: "穿搭照片/背景/business.png" },
+                "Wedding": { cityName: "宴會會館", landmark: "水晶花藝婚禮殿堂", temp: "23°C", condition: "🌸 溫馨宜人",
+                    bg: "穿搭照片/背景/wedding.png" }
             };
 
             let data = mockWeather[city] || { 
