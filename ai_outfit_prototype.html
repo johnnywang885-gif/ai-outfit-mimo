@@ -1565,20 +1565,39 @@
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
                     <button class="btn-settings" style="background: rgba(232, 167, 185, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
+                    <button class="btn-settings" onclick="randomizeScene()">🎬 隨機場景</button>
                     <button class="btn-settings" onclick="openSettings()">⚙️ AI 設定</button>
                     <div style="position: relative; display: flex; align-items: center;">
                         <select id="city-selector" style="background: rgba(255,255,255,0.03); color: white; border: 1px solid var(--glass-border); padding: 5px 28px 5px 12px; border-radius: 100px; font-size: 0.75rem; cursor: pointer; outline: none; transition: 0.3s;" onchange="updateWeatherByCity(this.value)">
-                            <optgroup label="都會與社交場合">
-                                <option value="Cafe">☕ 陽光下午茶 (Cafe)</option>
-                                <option value="Gallery">🎨 藝文展覽 (Gallery)</option>
-                                <option value="Boutique">🛍️ 精品大道 (Boutique)</option>
-                                <option value="Rooftop">🍸 霓虹酒吧 (Rooftop Bar)</option>
+                            <optgroup label="北部地區">
+                                <option value="Taipei">台北市</option>
+                                <option value="New Taipei">新北市</option>
+                                <option value="Keelung">基隆市</option>
+                                <option value="Taoyuan">桃園市</option>
+                                <option value="Hsinchu City">新竹市</option>
+                                <option value="Hsinchu">新竹縣</option>
                             </optgroup>
-                            <optgroup label="戶外與特殊場合">
-                                <option value="Glamping">🏕️ 奢華露營 (Glamping)</option>
-                                <option value="Beach">🏖️ 度假海灘 (Resort Beach)</option>
-                                <option value="Business">💼 時尚商務 (Business)</option>
-                                <option value="Wedding">💍 婚禮宴會 (Wedding)</option>
+                            <optgroup label="中部地區">
+                                <option value="Miaoli">苗栗縣</option>
+                                <option value="Taichung">台中市</option>
+                                <option value="Changhua">彰化縣</option>
+                                <option value="Nantou">南投縣</option>
+                                <option value="Yunlin">雲林縣</option>
+                            </optgroup>
+                            <optgroup label="南部地區">
+                                <option value="Chiayi City">嘉義市</option>
+                                <option value="Chiayi">嘉義縣</option>
+                                <option value="Tainan">台南市</option>
+                                <option value="Kaohsiung">高雄市</option>
+                                <option value="Pingtung">屏東縣</option>
+                            </optgroup>
+                            <optgroup label="東部及離島">
+                                <option value="Yilan">宜蘭縣</option>
+                                <option value="Hualien">花蓮縣</option>
+                                <option value="Taitung">台東縣</option>
+                                <option value="Penghu">澎湖縣</option>
+                                <option value="Kinmen">金門縣</option>
+                                <option value="Lienchiang">連江縣</option>
                             </optgroup>
                         </select>
                         <span style="position: absolute; right: 10px; font-size: 0.6rem; pointer-events: none;">▼</span>
@@ -3537,17 +3556,96 @@
             }
         }
 
-        // --- 女性時尚生活與社交場合座標對照表 ---
+        // --- 台灣縣市地理座標與即時天氣對照表 ---
         const cityCoords = {
-            "Cafe": { lat: 25.0330, lon: 121.5654 },     // 台北
-            "Gallery": { lat: 25.0330, lon: 121.5654 },  // 台北
-            "Boutique": { lat: 24.1477, lon: 120.6736 }, // 台中
-            "Rooftop": { lat: 25.0330, lon: 121.5654 },  // 台北
-            "Glamping": { lat: 23.9061, lon: 120.6869 }, // 南投
-            "Beach": { lat: 21.9427, lon: 120.7965 },    // 墾丁
-            "Business": { lat: 25.0330, lon: 121.5654 }, // 台北
-            "Wedding": { lat: 25.0330, lon: 121.5654 }   // 台北
+            "Taipei": { lat: 25.0330, lon: 121.5654 },
+            "New Taipei": { lat: 25.0170, lon: 121.4628 },
+            "Keelung": { lat: 25.1283, lon: 121.7419 },
+            "Taoyuan": { lat: 24.9936, lon: 121.3010 },
+            "Hsinchu City": { lat: 24.8138, lon: 120.9675 },
+            "Hsinchu": { lat: 24.8383, lon: 121.0177 },
+            "Miaoli": { lat: 24.5602, lon: 120.8208 },
+            "Taichung": { lat: 24.1477, lon: 120.6736 },
+            "Changhua": { lat: 24.0519, lon: 120.5161 },
+            "Nantou": { lat: 23.9061, lon: 120.6869 },
+            "Yunlin": { lat: 23.7092, lon: 120.4313 },
+            "Chiayi City": { lat: 23.4801, lon: 120.4491 },
+            "Chiayi": { lat: 23.4518, lon: 120.2555 },
+            "Tainan": { lat: 22.9908, lon: 120.2133 },
+            "Kaohsiung": { lat: 22.6273, lon: 120.3014 },
+            "Pingtung": { lat: 22.6762, lon: 120.4883 },
+            "Yilan": { lat: 24.7021, lon: 121.7378 },
+            "Hualien": { lat: 23.9871, lon: 121.6016 },
+            "Taitung": { lat: 22.7560, lon: 121.1530 },
+            "Penghu": { lat: 23.5711, lon: 119.5793 },
+            "Kinmen": { lat: 24.4498, lon: 118.3732 },
+            "Lienchiang": { lat: 26.1519, lon: 119.9392 }
         };
+
+        // --- 女性時尚生活與社交場合場景陣列 ---
+        const sceneFiles = [
+            { name: "Cafe", cityName: "陽光咖啡廳", landmark: "法式網美下午茶區", bg: "穿搭照片/背景/cafe.png" },
+            { name: "Gallery", cityName: "當代美術館", landmark: "當代藝文特展廳", bg: "穿搭照片/背景/gallery.png" },
+            { name: "Boutique", cityName: "精品大道", landmark: "時尚精品林蔭街", bg: "穿搭照片/背景/boutique.png" },
+            { name: "Rooftop", cityName: "霓虹酒吧", landmark: "高空霓虹落日景觀", bg: "穿搭照片/背景/rooftop.png" },
+            { name: "Glamping", cityName: "奢華營地", landmark: "山谷落羽松野餐區", temp: "22°C", condition: "🌬️ 微風徐徐", bg: "穿搭照片/背景/glamping.png" },
+            { name: "Beach", cityName: "渡假沙灘", landmark: "墾丁細白海岸線", bg: "穿搭照片/背景/beach.png" },
+            { name: "Business", cityName: "商務會所", landmark: "高空行政商務酒廊", bg: "穿搭照片/背景/business.png" },
+            { name: "Wedding", cityName: "宴會會館", landmark: "水晶花藝婚禮殿堂", bg: "穿搭照片/背景/wedding.png" }
+        ];
+        let currentSceneIndex = Math.floor(Math.random() * sceneFiles.length);
+        let currentScene = sceneFiles[currentSceneIndex];
+
+        function randomizeScene() {
+            currentSceneIndex = Math.floor(Math.random() * sceneFiles.length);
+            currentScene = sceneFiles[currentSceneIndex];
+            updateSceneDisplay();
+        }
+
+        function updateSceneDisplay() {
+            const sceneBg = document.querySelector('.scene-bg');
+            if (sceneBg) {
+                sceneBg.style.backgroundImage = `url('${currentScene.bg}')`;
+                showToast(`場景已隨機切換至：${currentScene.cityName}`);
+                analyzeStyles();
+            }
+        }
+
+        function getSceneWeatherAdvice(scene, temp) {
+            let advice = "";
+            if (temp < 20) {
+                advice += "❄️ 目前氣候偏冷。";
+                if (scene === "Cafe") advice += "在「陽光咖啡廳」享受下午茶時，建議外搭一件親膚的針織外套或優雅風衣，保暖的同時不失溫柔浪漫氣息。";
+                else if (scene === "Gallery") advice += "在微涼的「美術館」看展，非常適合俐落的長版大衣或西裝外套，展現極簡且具書卷氣的知性美感。";
+                else if (scene === "Boutique") advice += "精品大道風大偏冷，推薦搭配保暖大衣與微高領上衣，展現俐落率性的時尚名媛氣場。";
+                else if (scene === "Rooftop") advice += "高空酒吧夜間風強偏冷，強烈建議外搭修身西裝或小香風外套，內搭長袖或高腰下身以防寒風。";
+                else if (scene === "Glamping") advice += "戶外山谷氣溫偏低，保暖極為重要。推薦針織毛衣搭配抗風外套、休閒靴，穿出溫暖休閒的英倫戶外風。";
+                else if (scene === "Beach") advice += "海灘微涼且海風強，建議選擇亞麻防曬外套、長裙或長袖針織，保持舒適的秋日海灘度假感。";
+                else if (scene === "Business") advice += "商務會所冷氣強，建議經典的俐落西裝外套、高腰包臀裙與跟鞋，展現專業俐落的主管風範。";
+                else if (scene === "Wedding") advice += "婚禮會館偏冷，建議在禮服或蕾絲洋裝外搭一件精緻披肩或修身短款外套，既保暖又符合正式禮儀。";
+            } else if (temp > 26) {
+                advice += "☀️ 目前氣候炎熱。";
+                if (scene === "Cafe") advice += "咖啡廳下午茶陽光燦爛，推薦涼爽的短袖針織、無袖上衣配雪紡長裙，清爽又帶有微甜氛圍。";
+                else if (scene === "Gallery") advice += "美術館內有冷氣，但室外炎熱。建議輕便短袖外搭一件薄防曬開襟衫，方便穿脫且符合藝術空間的簡約美感。";
+                else if (scene === "Boutique") advice += "精品大道艷陽高照，建議舒適透氣的短袖、高腰休閒寬褲與墨鏡配件，自在穿梭商圈。";
+                else if (scene === "Rooftop") advice += "炎熱夏夜的高空酒吧，非常推薦輕薄吊帶裙、無袖背心或微露腰短上衣，清涼吸睛且充滿微醺夜生活張力。";
+                else if (scene === "Glamping") advice += "戶外露營區陽光強烈，防曬與透氣最為重要。推薦寬鬆T恤、工裝短褲及防曬漁夫帽，穿出率性戶外野餐風。";
+                else if (scene === "Beach") advice += "海灘夏日炎炎，是泳裝、露背洋裝或碎花吊帶裙的完美場合！建議搭配大草帽與太陽眼鏡，享受清涼的海風。";
+                else if (scene === "Business") advice += "商務聚會炎熱，推薦透氣的雪紡襯衫、俐落寬褲或修身直筒裙，保持涼爽的同時不失幹練感。";
+                else if (scene === "Wedding") advice += "盛夏婚禮現場，建議選用絲滑高雅的緞面吊帶裙、蕾絲短洋裝，清涼優雅且完美符合婚宴的盛裝儀式感。";
+            } else {
+                advice += "⛅ 目前氣候宜人。";
+                if (scene === "Cafe") advice += "咖啡廳微風徐徐，適合層次感穿搭。推薦薄針織配半身裙，或是寬鬆襯衫配小白鞋，展現輕鬆隨性的春日法式風格。";
+                else if (scene === "Gallery") advice += "美術館看展氣候剛好。建議莫蘭迪色襯衫搭休閒褲，或一襲簡約長裙，展現沈穩知性的藝術品味。";
+                else if (scene === "Boutique") advice += "舒適精品街散步，適合皮衣外套、丹寧牛仔褲搭靴子，打造率性時尚的都會女郎造型。";
+                else if (scene === "Rooftop") advice += "微涼的露天酒吧夜晚，適合薄外套外搭內穿背心，或是微透膚上衣，慵懶又不失女人味。";
+                else if (scene === "Glamping") advice += "宜人的露營野餐天氣，非常適合針織開襟衫搭丹寧長裙，舒服又隨意，拍照極具文青感。";
+                else if (scene === "Beach") advice += "沙灘氣候溫和，適合棉麻寬鬆長洋裝或薄防曬衫，享受寫意的海岸散步時光。";
+                else if (scene === "Business") advice += "舒適的工作環境下，推薦百搭的西裝外套、輕熟針織衫與九分西褲，打造滿分的 Smart Casual 商務休閒。";
+                else if (scene === "Wedding") advice += "氣候宜人的婚禮宴會，最適合粉嫩色系中長洋裝，或是赫本風排褶裙，高貴典雅且與婚慶氣氛相得益彰。";
+            }
+            return advice;
+        }
 
         // --- 將 WMO Weather Code 轉為圖標與文字描述 ---
         function getWeatherEmoji(code) {
@@ -3562,46 +3660,50 @@
         }
 
         let currentWeatherData = { 
-            temp: "24°C", 
-            condition: "⛅ 舒適多雲", 
-            city: "Cafe",
-            cityName: "陽光咖啡廳",
-            landmark: "法式網美下午茶區"
+            temp: "22°C", 
+            condition: "⛅ 晴時多雲", 
+            city: "Taipei",
+            cityName: "台北市",
+            landmark: "信義商圈"
         };
 
         async function updateWeatherByCity(city) {
             const weatherDisplay = document.getElementById('weather-display');
             const sceneBg = document.querySelector('.scene-bg');
             
-            // ✅ 使用已成功下載至本機端「穿搭照片/背景/」目錄的超高畫質場景照片，保證 100% 成功快速載入且完全防 CORS 與熱連線阻擋
             const mockWeather = {
-                "Cafe": { cityName: "陽光咖啡廳", landmark: "法式網美下午茶區", temp: "24°C", condition: "⛅ 舒適多雲",
-                    bg: "穿搭照片/背景/cafe.png" },
-                "Gallery": { cityName: "當代美術館", landmark: "當代藝文特展廳", temp: "20°C", condition: "☁️ 微涼舒適",
-                    bg: "穿搭照片/背景/gallery.png" },
-                "Boutique": { cityName: "精品大道", landmark: "時尚精品林蔭街", temp: "26°C", condition: "☀️ 晴朗宜人",
-                    bg: "穿搭照片/背景/boutique.png" },
-                "Rooftop": { cityName: "霓虹酒吧", landmark: "高空霓虹落日景觀", temp: "21°C", condition: "🌌 微風夜景",
-                    bg: "穿搭照片/背景/rooftop.png" },
-                "Glamping": { cityName: "奢華營地", landmark: "山谷落羽松野餐區", temp: "22°C", condition: "🌬️ 微風徐徐",
-                    bg: "穿搭照片/背景/glamping.png" },
-                "Beach": { cityName: "渡假沙灘", landmark: "墾丁細白海岸線", temp: "30°C", condition: "☀️ 晴朗炎熱",
-                    bg: "穿搭照片/背景/beach.png" },
-                "Business": { cityName: "商務會所", landmark: "高空行政商務酒廊", temp: "22°C", condition: "❄️ 室內空調",
-                    bg: "穿搭照片/背景/business.png" },
-                "Wedding": { cityName: "宴會會館", landmark: "水晶花藝婚禮殿堂", temp: "23°C", condition: "🌸 溫馨宜人",
-                    bg: "穿搭照片/背景/wedding.png" }
+                "Taipei": { cityName: "台北市", landmark: "信義商圈", temp: "22°C", condition: "☁️ 多雲" },
+                "New Taipei": { cityName: "新北市", landmark: "九份老街", temp: "21°C", condition: "🌦️ 陣雨" },
+                "Keelung": { cityName: "基隆市", landmark: "正濱漁港", temp: "19°C", condition: "🌧️ 雨" },
+                "Taoyuan": { cityName: "桃園市", landmark: "大溪老街", temp: "23°C", condition: "⛅ 多雲" },
+                "Hsinchu City": { cityName: "新竹市", landmark: "城隍廟口", temp: "22°C", condition: "🌬️ 強風" },
+                "Hsinchu": { cityName: "新竹縣", landmark: "合興車站", temp: "21°C", condition: "🌬️ 強風" },
+                "Miaoli": { cityName: "苗栗縣", landmark: "龍騰斷橋", temp: "23°C", condition: "⛅ 多雲" },
+                "Taichung": { cityName: "台中市", landmark: "勤美綠園道", temp: "25°C", condition: "☀️ 晴朗" },
+                "Changhua": { cityName: "彰化縣", landmark: "八卦山大佛", temp: "25°C", condition: "☀️ 晴朗" },
+                "Nantou": { cityName: "南投縣", landmark: "清境農場", temp: "20°C", condition: "⛅ 多雲" },
+                "Yunlin": { cityName: "雲林縣", landmark: "古坑綠色隧道", temp: "26°C", condition: "☀️ 晴朗" },
+                "Chiayi City": { cityName: "嘉義市", landmark: "文化路夜市", temp: "25°C", condition: "☀️ 晴朗" },
+                "Chiayi": { cityName: "嘉義縣", landmark: "阿里山風景區", temp: "22°C", condition: "⛅ 多雲" },
+                "Tainan": { cityName: "台南市", landmark: "國華街美食區", temp: "27°C", condition: "☀️ 炎熱" },
+                "Kaohsiung": { cityName: "高雄市", landmark: "駁二藝術特區", temp: "29°C", condition: "☀️ 晴朗" },
+                "Pingtung": { cityName: "屏東縣", landmark: "大鵬灣國家風景區", temp: "30°C", condition: "☀️ 炎熱" },
+                "Yilan": { cityName: "宜蘭縣", landmark: "羅東林業園區", temp: "22°C", condition: "🌦️ 陣雨" },
+                "Hualien": { cityName: "花蓮縣", landmark: "七星潭海岸", temp: "23°C", condition: "☀️ 晴朗" },
+                "Taitung": { cityName: "台東縣", landmark: "鐵花村市集", temp: "24°C", condition: "⛅ 多雲" },
+                "Penghu": { cityName: "澎湖縣", landmark: "馬公觀音亭", temp: "26°C", condition: "🌬️ 強風" },
+                "Kinmen": { cityName: "金門縣", landmark: "翟山坑道", temp: "21°C", condition: "⛅ 多雲" },
+                "Lienchiang": { cityName: "連江縣", landmark: "芹壁聚落", temp: "18°C", condition: "🌫️ 有霧" }
             };
 
             let data = mockWeather[city] || { 
                 cityName: city, 
                 landmark: "都市街景", 
                 temp: "23°C", 
-                condition: "⛅ 晴時多雲", 
-                bg: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200" 
+                condition: "⛅ 晴時多雲"
             };
             
-            // 嘗試從 Open-Meteo API 取用真實世界當地即時氣候 (非強制性，失敗會無縫使用 Mock Weather)
+            // 嘗試從 Open-Meteo API 取用真實世界當地即時氣候
             const coords = cityCoords[city];
             if (coords) {
                 try {
@@ -3628,10 +3730,16 @@
             currentWeatherData = { ...data, city };
             
             weatherDisplay.innerHTML = `📍 ${data.cityName} (${data.landmark}) | ${data.condition} ${data.temp}`;
-            sceneBg.style.backgroundImage = `url('${data.bg}')`;
+            
+            // 隨機切換一個女性時尚生活背景場景
+            const randomScene = sceneFiles[Math.floor(Math.random() * sceneFiles.length)];
+            currentScene = randomScene;
+            if (sceneBg) {
+                sceneBg.style.backgroundImage = `url('${currentScene.bg}')`;
+            }
             
             analyzeStyles(); 
-            showToast(`已切換至 ${data.cityName} 場景`);
+            showToast(`已更新 ${data.cityName} 天氣，並隨機切換場景至：${currentScene.cityName}`);
         }
 
         // --- STYLE ANALYSIS WITH GORGEOUS GAUGES ---
@@ -3780,27 +3888,25 @@
             document.getElementById('stat-harmony').innerText = harmony + '%';
             document.getElementById('stat-harmony-bar').style.width = harmony + '%';
 
-            let weatherAlert = "";
-            const tempNum = parseInt(currentWeatherData.temp);
-            if (tempNum < 20) {
-                weatherAlert = "❄️ 目前氣溫偏低，強烈建議您加上一件保暖的外套。";
-            } else if (tempNum > 26) {
-                weatherAlert = "☀️ 今日天氣炎熱，穿著外套可能會過於悶熱。";
-            } else {
-                weatherAlert = "⛅ 目前氣溫宜人，適合舒適且具備層次感的搭配。";
-            }
+            const tempNum = parseInt(currentWeatherData.temp) || 22;
+            const sceneName = currentScene ? currentScene.name : 'Cafe';
+            const sceneCityName = currentScene ? currentScene.cityName : '陽光咖啡廳';
+            const sceneLandmark = currentScene ? currentScene.landmark : '法式網美下午茶區';
+            
+            // 結合當前穿搭場景與縣市氣溫給予綜合建議
+            const sceneWeatherAdvice = getSceneWeatherAdvice(sceneName, tempNum);
 
-            let quickSummary = `📍 ${currentWeatherData.cityName} • 正式度 ${formal}% • 風格和諧 ${harmony}% • ${weatherAlert}`;
+            let quickSummary = `📍 ${currentWeatherData.cityName} (${currentWeatherData.temp} ${currentWeatherData.condition}) • 🌸 ${sceneCityName} • 正式度 ${formal}% • 和諧度 ${harmony}%`;
             setAIComment(quickSummary);
 
             let reportHtml = `
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 1.25rem; border-radius: 18px; margin-bottom: 1.25rem;">
                     <div style="font-weight: 800; font-size: 1rem; color: var(--cyan); margin-bottom: 8px;">📍 環境感知分析 (Context-Aware)</div>
                     <div style="font-size: 0.85rem; color: var(--text-h); line-height: 1.6;">
-                        <strong>實景城市：</strong>${currentWeatherData.cityName}<br>
-                        <strong>特色景點：</strong>${currentWeatherData.landmark}<br>
-                        <strong>氣候狀態：</strong>${currentWeatherData.condition} (${currentWeatherData.temp})<br>
-                        <strong>顧問建議：</strong>${weatherAlert}
+                        <strong>所在縣市：</strong>${currentWeatherData.cityName} (特色地標：${currentWeatherData.landmark})<br>
+                        <strong>氣候溫度：</strong>${currentWeatherData.condition} (${currentWeatherData.temp})<br>
+                        <strong>社交實景：</strong>${sceneCityName} — ${sceneLandmark}<br>
+                        <strong>穿搭與場合建議：</strong>${sceneWeatherAdvice}
                     </div>
                 </div>
 
