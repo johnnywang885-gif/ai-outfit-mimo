@@ -5098,18 +5098,9 @@
                     addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
                     addHUDLine("⏳ 正在自動傳輸素材並排入上傳佇列...", 800);
                     
-                    // 💡 立即推至背景與最小化定位：出現後立刻將焦點調回主視窗，並把彈出視窗移往右下角以防擋住主畫面
-                    setTimeout(() => {
-                        window.focus();
-                        try {
-                            activeGeminiWindow.blur();
-                            // 將視窗移至螢幕右下角並縮小，達成類似最小化的視覺效果，且不干擾 Gemini 背景運作
-                            activeGeminiWindow.moveTo(window.screen.width - 320, window.screen.height - 320);
-                            activeGeminiWindow.resizeTo(300, 300);
-                        } catch (e) {
-                            console.warn('[VESTIS] Failed to move or resize popup window:', e);
-                        }
-                    }, 200);
+                    // 💡 注意：為了防止瀏覽器（Chrome/Edge）因失去焦點而對背景分頁實施計時器與 CPU 節流限制（Tab Throttling），
+                    // 我們不再於一開機的 200ms 內強行 blur 彈出視窗。這能確保素材上傳與傳送在最前台以 100% 全速運作！
+                    // 當上傳完成並自動按下送出後，系統會透過 `GEMINI_SENT` 訊息監聽器自動將焦點 focus() 切換回主視窗。
                 } else {
                     showToast("⚠️ 偵測到背景合成視窗被瀏覽器攔截！請在網址列右側點擊允許「彈出式視窗」以利自動合成！", "error");
                     addHUDLine("⚠️ 背景視窗被瀏覽器攔截！請允許彈出式視窗...", 500);
