@@ -5077,11 +5077,11 @@
             setTimeout(() => {
                 addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 在螢幕中央開啟一個正常尺寸的視窗展示 VESTIS 讀取畫面，上傳完畢後再切換回主畫面
-                const w = 900;
-                const h = 700;
-                const left = Math.max(0, (window.screen.width - w) / 2);
-                const top = Math.max(0, (window.screen.height - h) / 2);
+                // 💡 為了避免干擾使用者操作，直接將視窗開在右下角，並縮小尺寸 (類似虛擬最小化)
+                const w = 320;
+                const h = 320;
+                const left = window.screen.width - w - 20;
+                const top = window.screen.height - h - 80; // 預留 Windows 工作列高度
                 
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1", 
@@ -5093,6 +5093,19 @@
                     showToast("🚀 Gemini 智慧合成助手已啟動，正在處理素材上傳...");
                     addHUDLine("🔌 正在與 Gemini 背景助手建立安全連線...", 600);
                     addHUDLine("⏳ 正在自動傳輸素材並排入上傳佇列...", 800);
+                    
+                    // 💡 立即推至背景與最小化定位：出現後立刻將焦點調回主視窗，並把彈出視窗移往右下角以防擋住主畫面
+                    setTimeout(() => {
+                        window.focus();
+                        try {
+                            activeGeminiWindow.blur();
+                            // 將視窗移至螢幕右下角並縮小，達成類似最小化的視覺效果，且不干擾 Gemini 背景運作
+                            activeGeminiWindow.moveTo(window.screen.width - 320, window.screen.height - 320);
+                            activeGeminiWindow.resizeTo(300, 300);
+                        } catch (e) {
+                            console.warn('[VESTIS] Failed to move or resize popup window:', e);
+                        }
+                    }, 200);
                 } else {
                     showToast("⚠️ 偵測到背景合成視窗被瀏覽器攔截！請在網址列右側點擊允許「彈出式視窗」以利自動合成！", "error");
                     addHUDLine("⚠️ 背景視窗被瀏覽器攔截！請允許彈出式視窗...", 500);
