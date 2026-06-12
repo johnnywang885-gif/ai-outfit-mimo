@@ -3458,6 +3458,20 @@
 
         async function getBase64(url) {
             if (!url || url.length < 5) throw new Error('無效的圖片 URL');
+            
+            // 如果是相對路徑或本地 file:// 協議路徑，強制定向至本地 http://localhost:8000/ 服務
+            // 由於 vestis_server.py 具有 Access-Control-Allow-Origin: * 的 CORS 標頭，這樣能徹底解決 Canvas tainted 問題
+            if (!url.startsWith('data:')) {
+                if (url.startsWith('file:///')) {
+                    const idx = url.indexOf('穿搭照片/');
+                    if (idx !== -1) {
+                        url = 'http://localhost:8000/' + url.substring(idx);
+                    }
+                } else if (!url.startsWith('http')) {
+                    url = 'http://localhost:8000/' + url;
+                }
+            }
+
             if (url.startsWith('http') && !url.includes('/api/proxy_image')) {
                 url = getProxiedImageUrl(url);
             }
