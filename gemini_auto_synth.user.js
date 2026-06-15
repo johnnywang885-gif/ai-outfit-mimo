@@ -356,26 +356,62 @@
     }
 
     // 啟動靜音音訊播放，欺騙瀏覽器該分頁正有音訊活動，從而免除 Chromium 對背景分頁的計時器與 CPU 限制 (Tab Throttling)
+    let silentAudioCtx = null;
     function startSilentAudio() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!AudioContext) return;
-            const ctx = new AudioContext();
+            silentAudioCtx = new AudioContext();
             
             // 建立一個持續播放的極微弱振盪器，幾乎為靜音但足以讓瀏覽器標記為有音訊活動
-            const osc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            gainNode.gain.setValueAtTime(0.0001, ctx.currentTime);
+            const osc = silentAudioCtx.createOscillator();
+            const gainNode = silentAudioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.0001, silentAudioCtx.currentTime);
             osc.connect(gainNode);
-            gainNode.connect(ctx.destination);
+            gainNode.connect(silentAudioCtx.destination);
             osc.start();
             console.log("[VESTIS] Background silent audio activated successfully.");
             
-            if (ctx.state === 'suspended') {
-                ctx.resume();
+            if (silentAudioCtx.state === 'suspended') {
+                silentAudioCtx.resume();
             }
+            
+            // 監聽可能的使用者點擊/鍵盤手勢，以確保能在第一時間啟用 AudioContext
+            const resumeCtx = () => {
+                if (silentAudioCtx && silentAudioCtx.state === 'suspended') {
+                    silentAudioCtx.resume().then(() => {
+                        console.log("[VESTIS] AudioContext resumed by user gesture.");
+                        cleanup();
+                    });
+                } else {
+                    cleanup();
+                }
+            };
+            const cleanup = () => {
+                window.removeEventListener('click', resumeCtx);
+                window.removeEventListener('keydown', resumeCtx);
+                window.removeEventListener('mousemove', resumeCtx);
+            };
+            window.addEventListener('click', resumeCtx);
+            window.addEventListener('keydown', resumeCtx);
+            window.addEventListener('mousemove', resumeCtx);
         } catch (err) {
             console.warn("[VESTIS] Background silent audio activation failed:", err);
+        }
+    }
+
+    // 啟動 WebRTC 連線，藉此讓瀏覽器判定本分頁具有即時通訊活動，防止背景休眠
+    function keepAliveWebRTC() {
+        try {
+            const pc = new RTCPeerConnection({
+                iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+            });
+            // 建立虛擬 DataChannel 觸發連線狀態
+            pc.createDataChannel("vestis-keepalive");
+            pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(()=>{});
+            console.log("[VESTIS] Background WebRTC keep-alive activated.");
+        } catch (err) {
+            console.warn("[VESTIS] Background WebRTC keep-alive failed:", err);
         }
     }
 
@@ -386,6 +422,7 @@
         }
         initUI();
         startSilentAudio();
+        keepAliveWebRTC();
         initConnection();
     }
     startApp();
