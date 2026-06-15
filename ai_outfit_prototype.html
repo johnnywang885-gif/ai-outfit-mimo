@@ -2894,6 +2894,27 @@
     }
 };
 
+        function getWebItems(cat) {
+            const group = webBatches[cat];
+            if (group && group.batches[group.batchIndex]) {
+                return group.batches[group.batchIndex];
+            }
+            return [];
+        }
+
+        function rotateWebBatch(cat) {
+            const group = webBatches[cat];
+            if (!group) return;
+            group.batchIndex = (group.batchIndex + 1) % group.batches.length;
+            render(); 
+            
+            const toast = document.createElement("div");
+            toast.textContent = `已為您更新推薦清單 (第 ${group.batchIndex+1} 批)`;
+            toast.style.cssText = "position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:white;padding:10px 20px;border-radius:20px;z-index:9999;font-size:14px;";
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
         function getRecommendedSize(sizeChart) {
             const h = parseInt(document.getElementById("p-height")?.value) || 175;
             const w = parseInt(document.getElementById("p-weight")?.value) || 70;
