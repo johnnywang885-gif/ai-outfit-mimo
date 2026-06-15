@@ -2949,7 +2949,15 @@
 
         function initWardrobe() {
             const saved = localStorage.getItem("vestis_custom_wardrobe");
-            wardrobe = [...defaultWardrobe];
+            const deletedSaved = localStorage.getItem("vestis_deleted_default_items");
+            let deletedIds = [];
+            if (deletedSaved) {
+                try {
+                    deletedIds = JSON.parse(deletedSaved);
+                } catch(e) { console.error("Deleted defaults load fail", e); }
+            }
+            const filteredDefaults = defaultWardrobe.filter(item => !deletedIds.includes(item.id));
+            wardrobe = [...filteredDefaults];
             if (saved) {
                 try {
                     const customs = JSON.parse(saved);
@@ -3107,6 +3115,22 @@
                         card.ondragstart = (e) => { e.dataTransfer.setData("text", item.id); e.dataTransfer.setData("from_grid", "true"); };
                         card.onclick = () => showItemDetail(item);
                         card.ondblclick = (e) => { e.stopPropagation(); wearItem(item); };
+
+                        // Add delete button overlay for wardrobe items
+                        const deleteBtn = document.createElement("button");
+                        deleteBtn.innerHTML = "✕";
+                        deleteBtn.title = "刪除此單品";
+                        deleteBtn.style.cssText = "position:absolute;top:5px;right:5px;width:18px;height:18px;background:rgba(239,68,68,0.85);color:#fff;border:none;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;box-shadow:0 1px 3px rgba(0,0,0,0.3);transition:all 0.15s ease;";
+                        deleteBtn.onmouseover = () => { deleteBtn.style.background = "#ef4444"; };
+                        deleteBtn.onmouseout = () => { deleteBtn.style.background = "rgba(239,68,68,0.85)"; };
+                        deleteBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            if (confirm("確定要將此單品從衣櫃中刪除嗎？")) {
+                                deleteWardrobeItem(item.id);
+                            }
+                        };
+                        card.appendChild(deleteBtn);
+
                         ownGrid.appendChild(card);
                     });
                     ownGrid.ondragover = e => e.preventDefault();
@@ -3209,6 +3233,30 @@
             }
         }
 
+        function deleteWardrobeItem(id) {
+            const idx = wardrobe.findIndex(i => i.id === id);
+            if (idx > -1) {
+                wardrobe.splice(idx, 1);
+                if (id <= 1000000) {
+                    let deletedSaved = localStorage.getItem("vestis_deleted_default_items");
+                    let deletedIds = [];
+                    if (deletedSaved) {
+                        try { deletedIds = JSON.parse(deletedSaved); } catch(e) {}
+                    }
+                    if (!deletedIds.includes(id)) {
+                        deletedIds.push(id);
+                        localStorage.setItem("vestis_deleted_default_items", JSON.stringify(deletedIds));
+                    }
+                } else {
+                    saveWardrobe();
+                }
+                render();
+                showToast("🗑️ 單品已從衣櫃刪除");
+            } else {
+                showToast("⚠️ 找不到該單品或無法刪除");
+            }
+        }
+
         function showItemDetail(item) {
             window.currentModalItem = item;
             let html = `<div style="display:flex; flex-direction:column; gap:1.25rem; align-items:center; text-align:center;">
@@ -3231,8 +3279,13 @@
             }
             
             const isFav = favorites.includes(item.id);
-            html += `<button class="btn-prime" style="flex:1; padding:10px; font-size:0.8rem; margin-bottom:0; background:${isFav ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)'}; border:${isFav ? '1px solid var(--danger)' : '1px solid var(--glass-border)'}; color:${isFav ? 'var(--danger)' : 'white'}; box-shadow:none;" onclick="toggleFavorite(${item.id})">${isFav ? '❤️ 已收藏' : '🤍 加入收藏'}</button>
-                    </div>
+            html += `<button class="btn-prime" style="flex:1; padding:10px; font-size:0.8rem; margin-bottom:0; background:${isFav ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255,255,255,0.05)'}; border:${isFav ? '1px solid var(--danger)' : '1px solid var(--glass-border)'}; color:${isFav ? 'var(--danger)' : 'white'}; box-shadow:none;" onclick="toggleFavorite(${item.id})">${isFav ? '❤️ 已收藏' : '🤍 加入收藏'}</button>`;
+            
+            if (wardrobe.some(i => i.id === item.id)) {
+                html += `<button class="btn-prime" style="flex:1; padding:10px; font-size:0.8rem; margin-bottom:0; background:rgba(239,68,68,0.15); border:1px solid var(--danger); color:var(--danger); box-shadow:none;" onclick="if(confirm('確定要將此單品刪除嗎？')){ deleteWardrobeItem(${item.id}); document.getElementById('item-detail-overlay').style.display='none'; }">🗑️ 刪除單品</button>`;
+            }
+            
+            html += `</div>
                 </div>
             </div>`;
             document.getElementById('item-detail-content').innerHTML = html;
@@ -3558,15 +3611,7 @@
             e.preventDefault(); trash.classList.remove('drag-over');
             if (e.dataTransfer.getData('from_grid') === 'true') {
                 const id = parseInt(e.dataTransfer.getData('text'));
-                const idx = wardrobe.findIndex(i => i.id === id);
-                if (idx > -1 && id > 1000000) {
-                    wardrobe.splice(idx, 1);
-                    saveWardrobe();
-                    render();
-                    showToast("🗑️ 單品已從衣櫃刪除");
-                } else if (id <= 1000000) {
-                    showToast("⚠️ 內建單品或 Web 推薦單品無法刪除");
-                }
+                deleteWardrobeItem(id);
             }
         }
         function loadProfile(data) {
