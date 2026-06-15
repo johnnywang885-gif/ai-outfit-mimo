@@ -5289,12 +5289,12 @@
                 addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
                 // 💡 為了避免干擾使用者操作，並防止使用者因畫面彈出而手動最小化觸發瀏覽器背景節流限制，
-                // 我們將合成視窗開啟在螢幕邊界之外（物理上完全隱形，但維持開啟狀態不休眠）。
-                const w = 320;
-                const h = 320;
-                // 將視窗開啟在極大座標值上（X=10000, Y=10000），達成完全隱形效果且防止手動最小化
-                const left = 10000;
-                const top = 10000;
+                // 我們將合成視窗尺寸縮小，並開啟在螢幕右下角邊緣，使僅有 50x50 像素的角落留在螢幕內，其餘部分隱藏在螢幕邊界外。
+                // 這能確保 Chrome 接受坐標設定（若完全在螢幕外，Chrome 會強制將其重設到螢幕中央），同時達到極致的隱形與防止最小化效果。
+                const w = 200;
+                const h = 200;
+                const left = (window.screen.availWidth || window.screen.width) - 50;
+                const top = (window.screen.availHeight || window.screen.height) - 50;
                 
                 activeGeminiWindow = window.open(
                     "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1", 
