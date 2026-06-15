@@ -42,6 +42,7 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 | Key | Content |
 |---|---|
 | `vestis_custom_wardrobe` | User-uploaded items (id > 1000000) |
+| `vestis_deleted_default_items` | Array of deleted default item IDs (id <= 1000000) |
 | `vestis_profile` | Digital twin: `{img, type, h, w}` |
 | `vestis_outfit_log` | Array of try-on log entries |
 | `vestis_vton_engine` | `"fashn"` or `"classic"` |
@@ -66,15 +67,14 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **`getBase64()`** compresses images to max 768px at JPEG 0.8. fal.ai result URLs expire in minutes — always convert to base64 immediately.
 - **`analyzeStyles()`** is debounced (150ms) in `wearItem()`/`clearItem()` but called synchronously in `randomize()`.
 - **`mobileNav(section, btn)`** requires the button element as second parameter (passed via `onclick` as `this`).
-- **Trash zone** only deletes items with `id > 1000000`. Built-in and web items are protected.
+- **Trash zone** delegates to `deleteWardrobeItem(id)` and can delete both custom uploaded items (`id > 1000000`) and default wardrobe items (`id <= 1000000`). Web recommended items live in `webBatches{}` and remain protected.
 - **`showToast()`** is the reusable toast mechanism — do not create ad-hoc toast `<div>` elements.
 - **Dark glass-morphism CSS** uses custom properties: `--bg-deep`, `--glass-bg`, `--accent`, `--cyan`. Responsive breakpoints: mobile ≤768px, tablet 769–1024px, desktop >1440px. Touch devices get `@media (hover: none)` treatment.
 - **Weather** falls back to `mockWeather` object with local background images when Open-Meteo fails.
 - **Tampermonkey duplicate scripts** will crash on TrustedHTML policies. Always delete old versions and ensure only the latest `v2.1` userscript is active.
-- **Gemini Auto-Synthesis Observer Guard:** The userscript uses a response count difference (`responses.length > initialResponseCount`) to ignore old generated images in chat history. If this count check is bypassed, the script will return the first historical synthesis image instead of waiting for the new one.
+- **Gemini Auto-Synthesis Observer Guard:** The userscript uses a response count difference (`responses.length > initialResponseCount`) to ignore old generated images in chat history. If this count check is bypassed, the script will return the first initial response image instead of waiting for the new one.
 - **`clearItemSilent(cat)`** clears the selected item from the main model viewer silently. Whenever you apply a new synthesized image to the base-model, call `clearItemSilent()` for all item categories, followed by `updateCancelButtonsVisibility()` and `analyzeStyles()` to keep the UI clean.
 - **HUD 「vton渲染付費」警示引導區**：為了提升付費功能能見度，將原先在日誌動態滾動印出的「vton渲染付費」提示，移至 HUD 計時標題區下方作為常駐 Banner。採用 `.hud-payment-warning` 類別，字體加大（`0.85rem`），具金黃色霓虹效果，且移除原 `triggerGeminiQuickSynth()` 中的動態 `addHUDLine` 以免訊息重複。
 - **`modelFiles` 模特兒底圖陣列**：目前從資料夾 `穿搭照片/女模特兒/` 中載入全部共 54 張女模特兒底圖。主畫面上新增了半透明磨砂玻璃風格的左右切換按鈕（`.model-switch-btn`，`z-index: 25`），點選即可透過 `nextModel()` / `prevModel()` 和 `updateModelDisplay()` 進行順暢切換。
-- **Gemini 彈出視窗與焦點切換機制**：自動合成在螢幕中央開啟 `900x700` 尺寸的視窗展示 VESTIS 黑色讀取畫面。上傳完成並送出指令時，使用者腳本會對主視窗發送 `GEMINI_SENT` 訊息，促使主視窗調用 `window.focus()` 奪回焦點並將彈出視窗推至背景（防休眠運作中）。合成完畢後該視窗會透過 `window.close()` 自動關閉，不干擾使用者操作。
+- **Gemini 彈出視窗與焦點切換及防休眠機制**：自動合成開啟一個微小 (`200x200`) 視窗，並將坐標定位於螢幕可用寬高邊緣外 (`availWidth - 50, availHeight - 50`)，使僅有 `50x50` 像素留在螢幕內，其餘部分隱藏在邊界外以規避 Chrome 座標重設並達到極致隱形效果。同時，腳本內建了 WebRTC 連線 (`keepAliveWebRTC`) 與靜音音訊模擬 (`startSilentAudio`) 雙重機制，防止瀏覽器因為視窗被最小化或置於背景而進行 Tab Throttling CPU 節流限制。
 - **Gemini 自動化視窗安全標記與防護隔離機制**：為防範使用者在系統關閉或日常手動開啟 Gemini 分頁時誤觸發自動化腳本導致頁面卡死，`ai_outfit_prototype.html` 的 `window.open` 網址會帶有 `&vestis=1` 參數。`gemini_auto_synth.user.js` (v2.4) 在載入之初會進行此標記檢查，若非 VESTIS 自動化調用則立刻退出，確保日常 Gemini 使用完全不受影響。
-
