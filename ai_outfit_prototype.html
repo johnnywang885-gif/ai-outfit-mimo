@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VESTIS Atelier | 智慧擬真穿搭設計師</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-deep: #0e0a0d; /* Luxurious ultra-dark plum black */
@@ -1464,6 +1465,7 @@
                 <button class="sidebar-nav-btn active" id="btn-tab-wardrobe" onclick="switchSidebarTab('wardrobe')">👗 衣櫃</button>
                 <button class="sidebar-nav-btn" id="btn-tab-twin" onclick="switchSidebarTab('twin')">👤 分身</button>
                 <button class="sidebar-nav-btn" id="btn-tab-assets" onclick="switchSidebarTab('assets')">✨ 珍藏</button>
+                <button class="sidebar-nav-btn" id="btn-tab-account" onclick="switchSidebarTab('account')">🔑 會員</button>
             </div>
             
             <!-- Tab 1: Wardrobe Panel -->
@@ -1555,6 +1557,74 @@
                     <span>📓 歷史穿搭日誌</span>
                     <span class="drawer-btn-badge" id="log-btn-badge">0</span>
                 </button>
+            </div>
+
+            <!-- Tab 4: Account / Authentication Panel -->
+            <div id="sidebar-account-panel" class="sidebar-panel" style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; padding-right: 4px;">
+                <h3 class="panel-section-title">Atelier 會員中心</h3>
+                
+                <!-- Unauthenticated view -->
+                <div id="auth-unauthenticated" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 18px;">
+                        <div style="font-weight: 800; font-size: 0.85rem; color: var(--cyan); margin-bottom: 8px;">🎁 免註冊體驗中</div>
+                        <div style="font-size: 0.75rem; color: var(--text-p); line-height: 1.4; margin-bottom: 12px;">
+                            您目前是訪客身分，尚有 <strong id="guest-credits-count" style="color: var(--accent); font-size: 1.1em;">3</strong> 次 AI 試穿額度。
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-p);">註冊登入後即可享有雲端資料同步、自訂衣櫃上傳與無限次試穿！</div>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <input type="email" id="auth-email" placeholder="電子信箱" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 10px; color: white; font-size: 0.8rem; outline: none;">
+                        <input type="password" id="auth-password" placeholder="密碼 (最少 6 位數)" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: 10px; color: white; font-size: 0.8rem; outline: none;">
+                        
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <button class="btn-prime" style="flex: 1; padding: 10px; font-size: 0.75rem; margin-bottom: 0; background: linear-gradient(135deg, var(--accent), var(--cyan)); color: #1d0e16; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px var(--accent-glow);" onclick="handleEmailSignIn()">登入</button>
+                            <button class="btn-prime" style="flex: 1; padding: 10px; font-size: 0.75rem; margin-bottom: 0; background: transparent; border: 1px solid var(--accent); color: var(--accent); box-shadow: none;" onclick="handleEmailSignUp()">註冊</button>
+                        </div>
+                    </div>
+                    
+                    <div style="position: relative; text-align: center; margin: 10px 0;">
+                        <span style="background: var(--bg-deep); padding: 0 10px; font-size: 0.7rem; color: var(--text-p); position: relative; z-index: 2;">或</span>
+                        <div style="position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed var(--glass-border); z-index: 1;"></div>
+                    </div>
+                    
+                    <button class="btn-prime" style="background: #ffffff; color: #1f2937; padding: 10px; font-size: 0.75rem; font-weight: 700; margin-bottom: 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; box-shadow: 0 4px 10px rgba(255,255,255,0.1);" onclick="handleGoogleSignIn()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                        </svg>
+                        使用 Google 帳號登入
+                    </button>
+                </div>
+                
+                <!-- Authenticated view -->
+                <div id="auth-authenticated" style="display: none; flex-direction: column; gap: 1rem;">
+                    <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--glass-border); padding: 1.2rem; border-radius: 18px; text-align: center;">
+                        <div style="position: relative; width: 64px; height: 64px; margin: 0 auto 12px auto;">
+                            <div style="width: 100%; height: 100%; border-radius: 50%; background: #1c1119; border: 2px solid var(--accent); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent-glow);">
+                                <img id="auth-user-avatar" src="" style="width:100%; height:100%; object-fit:cover; display:none;">
+                                <span id="auth-user-placeholder" style="font-size: 1.8rem;">👤</span>
+                            </div>
+                        </div>
+                        <div id="auth-user-email" style="font-weight: 800; font-size: 0.85rem; color: var(--text-h); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">user@example.com</div>
+                        <div style="font-size: 0.7rem; color: var(--text-p); margin-top: 4px;">Atelier 雲端會員</div>
+                        
+                        <div style="border-top: 1px dashed var(--glass-border); margin: 12px 0; padding-top: 12px; display: flex; justify-content: space-around; font-size: 0.75rem;">
+                            <div>
+                                <div id="auth-stat-wardrobe" style="font-weight: 800; color: var(--cyan); font-size: 1rem;">0</div>
+                                <div style="color: var(--text-p); font-size: 0.65rem; margin-top: 2px;">雲端單品</div>
+                            </div>
+                            <div>
+                                <div id="auth-stat-favorites" style="font-weight: 800; color: var(--cyan); font-size: 1rem;">0</div>
+                                <div style="color: var(--text-p); font-size: 0.65rem; margin-top: 2px;">我的收藏</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-prime" style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); color: var(--danger); box-shadow: none; padding: 10px; font-size: 0.75rem; margin-bottom: 0;" onclick="handleSignOut()">登出帳戶</button>
+                </div>
             </div>
         </aside>
 
@@ -1997,9 +2067,13 @@
             <span class="nav-icon">👤</span>
             分身
         </button>
-        <button class="mobile-nav-btn" onclick="mobileNav('settings', this)">
-            <span class="nav-icon">⚙️</span>
-            設定
+        <button class="mobile-nav-btn" onclick="mobileNav('assets', this)">
+            <span class="nav-icon">✨</span>
+            珍藏
+        </button>
+        <button class="mobile-nav-btn" onclick="mobileNav('account', this)">
+            <span class="nav-icon">🔑</span>
+            會員
         </button>
     </nav>
 
@@ -2007,6 +2081,373 @@
     <canvas id="magic-canvas" style="display:none;"></canvas>
 
     <script>
+        // --- Supabase Cloud Setup & Auth ---
+        const SUPABASE_URL = "https://ncxzvbsrsiabcfjufpob.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jeHp2YnNyc2lhYmNmanVmcG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTAwNDcsImV4cCI6MjA5NzE2NjA0N30.kRLoKBxfQVvFCWNYpNrYDGwBvuSU4n_kO7zLDMR1zLs";
+        let supabase = null;
+        let currentUser = null;
+        let guestCredits = 3;
+
+        if (typeof window.supabase !== 'undefined') {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            } catch (err) {
+                console.error("Failed to initialize Supabase client:", err);
+            }
+        }
+
+        function initGuestCredits() {
+            const saved = localStorage.getItem("vestis_guest_credits");
+            if (saved !== null) {
+                guestCredits = parseInt(saved);
+            } else {
+                guestCredits = 3;
+                localStorage.setItem("vestis_guest_credits", guestCredits.toString());
+            }
+            updateGuestCreditsUI();
+        }
+
+        function updateGuestCreditsUI() {
+            const countEl = document.getElementById("guest-credits-count");
+            if (countEl) countEl.innerText = guestCredits;
+        }
+
+        function consumeGuestCredit() {
+            if (!currentUser) {
+                guestCredits = Math.max(0, guestCredits - 1);
+                localStorage.setItem("vestis_guest_credits", guestCredits.toString());
+                updateGuestCreditsUI();
+            }
+        }
+
+        async function checkSession() {
+            if (!supabase) return;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                await handleSessionChange(session);
+                
+                supabase.auth.onAuthStateChange(async (event, session) => {
+                    await handleSessionChange(session);
+                });
+            } catch (err) {
+                console.error("Auth session check failed:", err);
+            }
+        }
+
+        async function handleSessionChange(session) {
+            currentUser = session ? session.user : null;
+            if (currentUser) {
+                const unauthEl = document.getElementById("auth-unauthenticated");
+                const authEl = document.getElementById("auth-authenticated");
+                if (unauthEl) unauthEl.style.display = "none";
+                if (authEl) authEl.style.display = "flex";
+                
+                const emailEl = document.getElementById("auth-user-email");
+                if (emailEl) emailEl.innerText = currentUser.email;
+                
+                const avatarEl = document.getElementById("auth-user-avatar");
+                const placeholderEl = document.getElementById("auth-user-placeholder");
+                if (currentUser.user_metadata && currentUser.user_metadata.avatar_url) {
+                    if (avatarEl) {
+                        avatarEl.src = currentUser.user_metadata.avatar_url;
+                        avatarEl.style.display = "block";
+                    }
+                    if (placeholderEl) placeholderEl.style.display = "none";
+                } else {
+                    if (avatarEl) avatarEl.style.display = "none";
+                    if (placeholderEl) placeholderEl.style.display = "block";
+                }
+                
+                await syncCloudData();
+            } else {
+                const unauthEl = document.getElementById("auth-unauthenticated");
+                const authEl = document.getElementById("auth-authenticated");
+                if (unauthEl) unauthEl.style.display = "flex";
+                if (authEl) authEl.style.display = "none";
+                initGuestCredits();
+                initWardrobe();
+                initProfile();
+                initFavorites();
+                initOutfitLog();
+            }
+        }
+
+        async function handleEmailSignIn() {
+            const email = document.getElementById("auth-email").value;
+            const password = document.getElementById("auth-password").value;
+            if (!email || !password) {
+                showToast("請輸入電子信箱與密碼");
+                return;
+            }
+            showToast("正在登入...");
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                showToast(`❌ 登入失敗: ${error.message}`);
+            } else {
+                showToast("🎉 登入成功！");
+            }
+        }
+
+        async function handleEmailSignUp() {
+            const email = document.getElementById("auth-email").value;
+            const password = document.getElementById("auth-password").value;
+            if (!email || !password) {
+                showToast("請輸入電子信箱與密碼");
+                return;
+            }
+            if (password.length < 6) {
+                showToast("密碼長度最少為 6 位數");
+                return;
+            }
+            showToast("正在註冊...");
+            const { data, error } = await supabase.auth.signUp({ email, password });
+            if (error) {
+                showToast(`❌ 註冊失敗: ${error.message}`);
+            } else {
+                showToast("🎉 註冊成功！請檢查您的信箱進行驗證或直接登入（若已啟用免驗證）");
+            }
+        }
+
+        async function handleGoogleSignIn() {
+            if (!supabase) return;
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + window.location.pathname
+                }
+            });
+            if (error) showToast(`❌ Google 登入失敗: ${error.message}`);
+        }
+
+        async function handleSignOut() {
+            if (!supabase) return;
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                showToast(`❌ 登出失敗: ${error.message}`);
+            } else {
+                showToast("已成功登出");
+            }
+        }
+
+        async function uploadImageToSupabase(dataUrl, filename) {
+            if (!currentUser || !supabase) return dataUrl;
+            try {
+                const res = await fetch(dataUrl);
+                const blob = await res.blob();
+                
+                const extension = blob.type.split('/')[1] || 'png';
+                const cleanName = filename.replace(/[^a-zA-Z0-9]/g, '_');
+                const filePath = `${currentUser.id}/${Date.now()}_${cleanName}.${extension}`;
+                
+                const { data, error } = await supabase.storage
+                    .from('wardrobe')
+                    .upload(filePath, blob, {
+                        contentType: blob.type,
+                        upsert: true
+                    });
+                if (error) throw error;
+                
+                const { data: { publicUrl } } = supabase.storage
+                    .from('wardrobe')
+                    .getPublicUrl(filePath);
+                
+                return publicUrl;
+            } catch (err) {
+                console.error("Storage upload failed:", err);
+                showToast("❌ 單品相片上傳雲端失敗");
+                return null;
+            }
+        }
+
+        async function saveTwinProfile(data) {
+            if (currentUser && supabase) {
+                let imgUrl = data.img;
+                if (imgUrl.startsWith("data:")) {
+                    showToast("⏳ 正在上傳分身相片至雲端...");
+                    imgUrl = await uploadImageToSupabase(imgUrl, "twin_profile.png");
+                }
+                if (imgUrl) {
+                    const { error } = await supabase.from('profiles').upsert({
+                        id: currentUser.id,
+                        height: data.h,
+                        weight: data.w,
+                        gender: data.type === 'full' ? 'female' : 'male',
+                        avatar_url: imgUrl,
+                        updated_at: new Date().toISOString()
+                    });
+                    if (error) {
+                        showToast(`❌ 雲端分身同步失敗: ${error.message}`);
+                    } else {
+                        showToast("✅ 雲端分身同步成功！");
+                        await syncCloudData();
+                    }
+                }
+            } else {
+                sessionStorage.setItem("vestis_profile", JSON.stringify(data));
+            }
+        }
+
+        async function saveOutfitLog(thumbBase64, fullImgUrl) {
+            const outfitRecord = {
+                id: Date.now(),
+                time: Date.now(),
+                img: thumbBase64,
+                fullImgUrl: fullImgUrl
+            };
+            
+            if (currentUser && supabase) {
+                const outfitDetails = {
+                    top: currentMannequinOutfit.top ? currentMannequinOutfit.top.id : null,
+                    outerwear: currentMannequinOutfit.outerwear ? currentMannequinOutfit.outerwear.id : null,
+                    bottom: currentMannequinOutfit.bottom ? currentMannequinOutfit.bottom.id : null,
+                    shoes: currentMannequinOutfit.shoes ? currentMannequinOutfit.shoes.id : null,
+                    accessory: currentMannequinOutfit.accessory ? currentMannequinOutfit.accessory.id : null
+                };
+                
+                let cloudResultUrl = fullImgUrl;
+                if (cloudResultUrl.startsWith("data:")) {
+                    cloudResultUrl = await uploadImageToSupabase(cloudResultUrl, "outfit_log_result.png");
+                }
+                
+                const { data, error } = await supabase
+                    .from('outfit_logs')
+                    .insert({
+                        user_id: currentUser.id,
+                        outfit: outfitDetails,
+                        result_img_url: cloudResultUrl || thumbBase64
+                    });
+                if (error) {
+                    console.error("Failed to save outfit log to cloud:", error);
+                } else {
+                    await syncCloudData();
+                }
+            } else {
+                outfitLogs.push(outfitRecord);
+                if (outfitLogs.length > 10) outfitLogs.shift();
+                localStorage.setItem('vestis_outfit_log', JSON.stringify(outfitLogs));
+                initOutfitLog();
+            }
+        }
+
+        async function syncCloudData() {
+            if (!currentUser || !supabase) return;
+            
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            if (profile && profile.avatar_url) {
+                const twinData = {
+                    img: profile.avatar_url,
+                    type: profile.gender === 'male' ? 'head' : 'full',
+                    h: profile.height || 160,
+                    w: profile.weight || 50
+                };
+                sessionStorage.setItem("vestis_profile", JSON.stringify(twinData));
+                loadProfile(twinData);
+            }
+            
+            const { data: favRows } = await supabase
+                .from('favorites')
+                .select('item_id')
+                .eq('user_id', currentUser.id);
+            if (favRows) {
+                favorites = favRows.map(r => parseInt(r.item_id));
+                updateFavoritesUI();
+            }
+            
+            const { data: logRows } = await supabase
+                .from('outfit_logs')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            if (logRows) {
+                outfitLogs = logRows.map(r => ({
+                    id: r.id,
+                    outfit: r.outfit,
+                    img: r.result_img_url,
+                    fullImgUrl: r.result_img_url,
+                    time: new Date(r.created_at).getTime()
+                }));
+                updateLogsUI();
+            }
+            
+            const localCustomsSaved = localStorage.getItem("vestis_custom_wardrobe");
+            if (localCustomsSaved) {
+                try {
+                    const localCustoms = JSON.parse(localCustomsSaved);
+                    if (localCustoms && localCustoms.length > 0) {
+                        showToast("📦 偵測到訪客單品，正在同步至雲端...");
+                        for (const item of localCustoms) {
+                            let imgUrl = item.img;
+                            if (imgUrl.startsWith("data:")) {
+                                imgUrl = await uploadImageToSupabase(imgUrl, item.name || "item.png");
+                            }
+                            if (imgUrl) {
+                                await supabase.from('wardrobe_items').insert({
+                                    user_id: currentUser.id,
+                                    cat: item.cat,
+                                    name: item.name || "私有單品",
+                                    price: item.price || "私有單品",
+                                    img_url: imgUrl,
+                                    is_external: !!item.isExternal
+                                });
+                            }
+                        }
+                        localStorage.removeItem("vestis_custom_wardrobe");
+                    }
+                } catch(e) {
+                    console.error("Failed to migrate guest wardrobe:", e);
+                }
+            }
+
+            const { data: wardrobeRows } = await supabase
+                .from('wardrobe_items')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+            
+            let deletedIds = [];
+            const { data: deletedRows } = await supabase
+                .from('deleted_default_items')
+                .select('item_id')
+                .eq('user_id', currentUser.id);
+            if (deletedRows) {
+                deletedIds = deletedRows.map(r => r.item_id);
+            }
+            
+            const filteredDefaults = defaultWardrobe.filter(item => !deletedIds.includes(item.id));
+            wardrobe = [...filteredDefaults];
+            
+            if (wardrobeRows) {
+                const cloudCustoms = wardrobeRows.map(r => ({
+                    id: r.id,
+                    cat: r.cat,
+                    name: r.name,
+                    price: r.price,
+                    img: r.img_url,
+                    isExternal: !!r.is_external
+                }));
+                wardrobe = [...cloudCustoms, ...wardrobe];
+            }
+            
+            render();
+            
+            const customCount = wardrobeRows ? wardrobeRows.length : 0;
+            const wardrobeStat = document.getElementById("auth-stat-wardrobe");
+            if (wardrobeStat) wardrobeStat.innerText = customCount;
+            const favoritesStat = document.getElementById("auth-stat-favorites");
+            if (favoritesStat) favoritesStat.innerText = favorites.length;
+            const logBadge = document.getElementById('log-btn-badge');
+            if (logBadge) logBadge.innerText = outfitLogs.length;
+        }
+
+        function updateLogsUI() {
+            const logBadge = document.getElementById('log-btn-badge');
+            if (logBadge) logBadge.innerText = outfitLogs.length;
+        }
+
         function getProxiedImageUrl(url) {
             if (!url) return '';
             if (url.startsWith('http') && !url.includes('/api/proxy_image')) {
@@ -2183,6 +2624,22 @@
 
         // --- CORE VTON API CALLER ---
         async function executeVTON(cat, garmentUrl, humanUrl, itemName = "") {
+            if (supabase) {
+                console.log(`[VESTIS Cloud] 呼叫 vton-proxy 邊緣函數, engine=${VTON_ENGINE}`);
+                try {
+                    const { data, error } = await supabase.functions.invoke('vton-proxy', {
+                        body: { cat, garmentUrl, humanUrl, itemName, engine: VTON_ENGINE }
+                    });
+                    if (error) throw error;
+                    if (data && data.outputUrl) {
+                        return data.outputUrl;
+                    }
+                    throw new Error("邊緣函數未傳回正確的 outputUrl");
+                } catch (edgeErr) {
+                    console.error("[VESTIS Cloud] 邊緣函數呼叫失敗，嘗試本地 fallback:", edgeErr);
+                }
+            }
+
             let rawKey = localStorage.getItem('fal_api_key') || "c2cd19f5-5d73-4d3f-aee0-a0433b2bf398:942f7e271440124f75c06048f65299d6";
             const apiKey = rawKey.replace(/[^\x20-\x7E]/g, "").trim();
 
@@ -3237,18 +3694,27 @@
             const idx = wardrobe.findIndex(i => i.id === id);
             if (idx > -1) {
                 wardrobe.splice(idx, 1);
-                if (id <= 1000000) {
-                    let deletedSaved = localStorage.getItem("vestis_deleted_default_items");
-                    let deletedIds = [];
-                    if (deletedSaved) {
-                        try { deletedIds = JSON.parse(deletedSaved); } catch(e) {}
-                    }
-                    if (!deletedIds.includes(id)) {
-                        deletedIds.push(id);
-                        localStorage.setItem("vestis_deleted_default_items", JSON.stringify(deletedIds));
+                const isDefault = defaultWardrobe.some(item => item.id === id);
+                if (isDefault) {
+                    if (currentUser && supabase) {
+                        supabase.from('deleted_default_items').insert({ user_id: currentUser.id, item_id: id }).then(() => syncCloudData());
+                    } else {
+                        let deletedSaved = localStorage.getItem("vestis_deleted_default_items");
+                        let deletedIds = [];
+                        if (deletedSaved) {
+                            try { deletedIds = JSON.parse(deletedSaved); } catch(e) {}
+                        }
+                        if (!deletedIds.includes(id)) {
+                            deletedIds.push(id);
+                            localStorage.setItem("vestis_deleted_default_items", JSON.stringify(deletedIds));
+                        }
                     }
                 } else {
-                    saveWardrobe();
+                    if (currentUser && supabase) {
+                        supabase.from('wardrobe_items').delete().eq('id', id).eq('user_id', currentUser.id).then(() => syncCloudData());
+                    } else {
+                        saveWardrobe();
+                    }
                 }
                 render();
                 showToast("🗑️ 單品已從衣櫃刪除");
@@ -3390,17 +3856,41 @@
             return item;
         }
 
-        function toggleFavorite(id) {
+        async function toggleFavorite(id) {
             const idx = favorites.indexOf(id);
             if (idx > -1) { 
                 favorites.splice(idx, 1); 
-                showToast("已從收藏移除"); 
+                if (currentUser && supabase) {
+                    await supabase.from('favorites').delete().eq('user_id', currentUser.id).eq('item_id', id);
+                    await syncCloudData();
+                } else {
+                    localStorage.setItem("vestis_favorites", JSON.stringify(favorites));
+                    showToast("已從收藏移除"); 
+                }
             } else { 
                 favorites.push(id); 
-                showToast("已加入我的收藏庫"); 
+                if (currentUser && supabase) {
+                    await supabase.from('favorites').insert({ user_id: currentUser.id, item_id: id });
+                    await syncCloudData();
+                } else {
+                    localStorage.setItem("vestis_favorites", JSON.stringify(favorites));
+                    showToast("已加入我的收藏庫"); 
+                }
             }
             const item = findItemById(id);
             if (item) showItemDetail(item);
+            updateFavoritesUI();
+        }
+
+        function initFavorites() {
+            const saved = localStorage.getItem("vestis_favorites");
+            if (saved) {
+                try {
+                    favorites = JSON.parse(saved);
+                } catch(e) { console.error("Favorites load fail", e); }
+            } else {
+                favorites = [];
+            }
             updateFavoritesUI();
         }
 
@@ -3462,21 +3952,56 @@
             }
         };
 
-        function processImage(dataUrl, name, shouldWear = false) {
-            const item = {
-                id: Date.now(),
-                cat: currentTab === "all" ? "top" : currentTab,
-                name: name,
-                price: "私有單品",
-                img: dataUrl,
-                isExternal: false
-            };
-            wardrobe.unshift(item);
-            saveWardrobe();
-            render();
-            showToast(`📸 單品 ${name} 已成功加入衣櫃`);
-            if (shouldWear) {
-                wearItem(item);
+        async function processImage(dataUrl, name, shouldWear = false) {
+            if (currentUser && supabase) {
+                showToast("⏳ 正在上傳單品相片至雲端...");
+                const imgUrl = await uploadImageToSupabase(dataUrl, name);
+                if (!imgUrl) return;
+                
+                const { data, error } = await supabase
+                    .from('wardrobe_items')
+                    .insert({
+                        user_id: currentUser.id,
+                        cat: currentTab === "all" ? "top" : currentTab,
+                        name: name,
+                        price: "私有單品",
+                        img_url: imgUrl,
+                        is_external: false
+                    })
+                    .select();
+                if (error) {
+                    showToast(`❌ 雲端新增失敗: ${error.message}`);
+                    return;
+                }
+                showToast(`📸 單品 ${name} 已成功上傳衣櫃`);
+                await syncCloudData();
+                if (shouldWear && data && data[0]) {
+                    const newItem = {
+                        id: data[0].id,
+                        cat: data[0].cat,
+                        name: data[0].name,
+                        price: data[0].price,
+                        img: data[0].img_url,
+                        isExternal: false
+                    };
+                    wearItem(newItem);
+                }
+            } else {
+                const item = {
+                    id: Date.now(),
+                    cat: currentTab === "all" ? "top" : currentTab,
+                    name: name,
+                    price: "私有單品",
+                    img: dataUrl,
+                    isExternal: false
+                };
+                wardrobe.unshift(item);
+                saveWardrobe();
+                render();
+                showToast(`📸 單品 ${name} 已成功加入衣櫃`);
+                if (shouldWear) {
+                    wearItem(item);
+                }
             }
         }
 
@@ -3552,7 +4077,7 @@
                 h: parseInt(document.getElementById("p-height").value) 
             };
             loadProfile(data);
-            sessionStorage.setItem("vestis_profile", JSON.stringify(data));
+            saveTwinProfile(data);
             closeProfileModal();
             showToast(type === "head" ? "✅ 人臉數位分身建立成功！" : "✅ 全身取代分身建立成功！");
         }
@@ -4352,6 +4877,13 @@
 
         // --- REALISTIC VTON ENGINE (USER TRIGGER) ---
         async function startVTON() {
+            if (!currentUser) {
+                if (guestCredits <= 0) {
+                    showToast("⚠️ 免費試穿額度已用完，請先登入或註冊會員！", "error");
+                    switchSidebarTab('account');
+                    return;
+                }
+            }
             if (!confirm("✨【AI 擬真渲染 (VTON) 提示】\n\n此功能「須付費，但擬真效果佳且省時快速」，確定要繼續執行嗎？")) {
                 return;
             }
@@ -4469,6 +5001,7 @@
                 document.getElementById('vton-result-img').src = finalResultUrl;
 
                 showToast("✨ AI 擬真渲染完成！");
+                consumeGuestCredit();
 
             } catch (err) {
                 console.error("[VESTIS AI] VTON Error:", err);
@@ -4576,24 +5109,13 @@
                     
                     const thumbBase64 = canvas.toDataURL('image/jpeg', 0.65);
                     
-                    outfitLogs.push({
-                        id: Date.now(),
-                        time: Date.now(),
-                        img: thumbBase64,
-                        fullImgUrl: imgEl.src
-                    });
-                    
-                    if (outfitLogs.length > 10) outfitLogs.shift();
-                    
-                    try {
-                        localStorage.setItem('vestis_outfit_log', JSON.stringify(outfitLogs));
-                        initOutfitLog();
+                    saveOutfitLog(thumbBase64, imgEl.src).then(() => {
                         showToast("✅ 已成功下載並加入穿搭日誌！");
                         document.getElementById('vton-overlay').style.display = 'none';
-                    } catch (lsErr) {
-                        console.error("LocalStorage 容量限制", lsErr);
-                        showToast("⚠️ 儲存空間已滿，請先刪除歷史日誌。");
-                    }
+                    }).catch(err => {
+                        console.error("Failed to save outfit log:", err);
+                        showToast("⚠️ 儲存日誌時發生錯誤。");
+                    });
                 };
                 
                 img.onerror = () => {
@@ -4660,6 +5182,7 @@
         }
 
         // --- GLOBAL INITIALIZATION ---
+        checkSession();
         initWardrobe();
         initWeather();
         initProfile();
@@ -4670,13 +5193,15 @@
             initRandomModel();
         })();
 
-        // 偵測本地伺服器是否已啟動，給予人性化引導
-        fetch('/api/get_payload').catch(err => {
-            console.warn("[VESTIS] Local server check failed, likely not running:", err);
-            setTimeout(() => {
-                showToast("⚠️ 偵測到本地中繼伺服器未啟動！請雙擊執行資料夾下的「一鍵啟動_VESTIS_AI.bat」以防系統功能失效！", "error");
-            }, 1500);
-        });
+        // 偵測本地伺服器是否已啟動，給予人性化引導 (僅於非雲端模式運作)
+        if (!supabase) {
+            fetch('/api/get_payload').catch(err => {
+                console.warn("[VESTIS] Local server check failed, likely not running:", err);
+                setTimeout(() => {
+                    showToast("⚠️ 偵測到本地中繼伺服器未啟動！請雙擊執行資料夾下的「一鍵啟動_VESTIS_AI.bat」以防系統功能失效！", "error");
+                }, 1500);
+            });
+        }
 
         // =========================================================================
         // 📸 一鍵多圖快速合成試穿 & 行動裝置導覽邏輯 (Mimo Edition)
@@ -5159,6 +5684,13 @@
         });
 
         async function triggerGeminiQuickSynth() {
+            if (!currentUser) {
+                if (guestCredits <= 0) {
+                    showToast("⚠️ 免費試穿額度已用完，請先登入或註冊會員！", "error");
+                    switchSidebarTab('account');
+                    return;
+                }
+            }
             if (!confirm("📸【一鍵多圖自動合成提示】\n\n此功能「免費，但需長時間等待」，確定要繼續執行嗎？")) {
                 return;
             }
@@ -5269,35 +5801,56 @@
             };
             vestisPayloadForGemini = payload;
 
-            // 送存至本地伺服器，解決跨網域 COOP 造成 window.opener 為 null 的限制
-            fetch('/api/store_payload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                console.log('[VESTIS] Payload stored to local server successfully');
-            }).catch(err => {
-                console.error('[VESTIS] Failed to store payload to local server:', err);
-            });
+            if (currentUser && supabase) {
+                // 雲端模式：寫入 Supabase gemini_sessions
+                addHUDLine("📡 正在向雲端資料庫註冊穿搭 Payload 數據...", 400);
+                supabase.from('gemini_sessions').upsert({
+                    user_id: currentUser.id,
+                    payload: payload,
+                    result: null,
+                    status: 'pending',
+                    updated_at: new Date().toISOString()
+                }).then(({ error }) => {
+                    if (error) {
+                        console.error('[VESTIS] Failed to store payload to Supabase:', error);
+                        showToast("⚠️ 雲端註冊失敗，請重試", "error");
+                    } else {
+                        console.log('[VESTIS] Payload stored to Supabase successfully');
+                    }
+                });
+            } else {
+                // 本地模式：送存至本地伺服器
+                addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
+                fetch('/api/store_payload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    console.log('[VESTIS] Payload stored to local server successfully');
+                }).catch(err => {
+                    console.error('[VESTIS] Failed to store payload to local server:', err);
+                });
+            }
 
             // 啟動雙向輪詢以獲取合成結果
             startResultPolling();
-            addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
             addHUDLine("💡 提示：系統已啟用背景防休眠技術，將自動於螢幕外完全隱形執行...", 450);
 
             setTimeout(() => {
                 addHUDLine("🚀 正在背景隱形啟動 Gemini 智慧穿搭合成助手...", 500);
                 
-                // 💡 為了避免干擾使用者操作，並防止使用者因畫面彈出而手動最小化觸發瀏覽器背景節流限制，
-                // 我們將合成視窗尺寸縮小，並開啟在螢幕右下角邊緣，使僅有 50x50 像素的角落留在螢幕內，其餘部分隱藏在螢幕邊界外。
-                // 這能確保 Chrome 接受坐標設定（若完全在螢幕外，Chrome 會強制將其重設到螢幕中央），同時達到極致的隱形與防止最小化效果。
                 const w = 200;
                 const h = 200;
                 const left = (window.screen.availWidth || window.screen.width) - 50;
                 const top = (window.screen.availHeight || window.screen.height) - 50;
                 
+                let geminiUrl = "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1";
+                if (currentUser && supabase) {
+                    geminiUrl += `&sb_url=${encodeURIComponent(SUPABASE_URL)}&sb_key=${encodeURIComponent(SUPABASE_KEY)}&user_id=${currentUser.id}`;
+                }
+                
                 activeGeminiWindow = window.open(
-                    "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1", 
+                    geminiUrl, 
                     "GeminiSynthWindow", 
                     `width=${w},height=${h},left=${left},top=${top},menubar=no,status=no,toolbar=no,location=no,resizable=no`
                 );
@@ -5384,15 +5937,8 @@
                 canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                 const thumbBase64 = canvas.toDataURL('image/jpeg', 0.65);
                 
-                outfitLogs.push({
-                    id: Date.now(),
-                    time: Date.now(),
-                    img: thumbBase64,
-                    fullImgUrl: dataUrl
-                });
-                if (outfitLogs.length > 10) outfitLogs.shift();
-                localStorage.setItem('vestis_outfit_log', JSON.stringify(outfitLogs));
-                initOutfitLog();
+                saveOutfitLog(thumbBase64, dataUrl);
+                consumeGuestCredit();
             };
         }
 
@@ -5432,25 +5978,43 @@
 
         function startResultPolling() {
             if (resultPollingInterval) clearInterval(resultPollingInterval);
-            console.log('[VESTIS] Starting result polling from local server...');
+            console.log('[VESTIS] Starting result polling...');
             
             resultPollingInterval = setInterval(() => {
-                fetch('/api/get_result')
-                    .then(res => {
-                        if (!res.ok) throw new Error();
-                        return res.json();
-                    })
-                    .then(resData => {
-                        if (resData && resData.data) {
-                            showToast("📥 偵測到本地伺服器回傳合成圖片，載入中...");
-                            addHUDLine("📥 偵測到本地伺服器回傳合成圖片！正在載入主畫面...", 200);
-                            stopGeminiProgressHUD();
-                            loadSynthesizedImageFromBase64(resData.data);
-                        }
-                    })
-                    .catch(err => {
-                        // 忽略輪詢期間的網路或找不到資料錯誤
-                    });
+                if (currentUser && supabase) {
+                    supabase.from('gemini_sessions')
+                        .select('result, status')
+                        .eq('user_id', currentUser.id)
+                        .single()
+                        .then(({ data, error }) => {
+                            if (data && data.status === 'completed' && data.result) {
+                                showToast("📥 偵測到雲端回傳合成圖片，載入中...");
+                                addHUDLine("📥 偵測到雲端回傳合成圖片！正在載入主畫面...", 200);
+                                stopGeminiProgressHUD();
+                                stopResultPolling();
+                                loadSynthesizedImageFromBase64(data.result);
+                                
+                                supabase.from('gemini_sessions').update({ status: 'idle' }).eq('user_id', currentUser.id).then(()=>{});
+                            }
+                        })
+                        .catch(err => {});
+                } else {
+                    fetch('/api/get_result')
+                        .then(res => {
+                            if (!res.ok) throw new Error();
+                            return res.json();
+                        })
+                        .then(resData => {
+                            if (resData && resData.data) {
+                                showToast("📥 偵測到本地伺服器回傳合成圖片，載入中...");
+                                addHUDLine("📥 偵測到本地伺服器回傳合成圖片！正在載入主畫面...", 200);
+                                stopGeminiProgressHUD();
+                                stopResultPolling();
+                                loadSynthesizedImageFromBase64(resData.data);
+                            }
+                        })
+                        .catch(err => {});
+                }
             }, 2000);
         }
 
@@ -5482,7 +6046,7 @@
                 showToast("🚀 素材已送出！Gemini 正在背景進行合成，您可繼續在主畫面操作...");
                 addHUDLine("📤 影像素材與指令已成功送出！", 200);
                 addHUDLine("⏳ 背景合成中，主頁已重新取回焦點...", 400);
-                window.focus(); // 切換回主頁
+                window.focus();
             } else if (e.data && e.data.type === 'VESTIS_SYNTH_RESULT') {
                 showToast("📥 接收到 Gemini 自動回傳的合成圖片，載入中...");
                 addHUDLine("📥 接收到 Gemini 背景合成回傳圖片！正在載入主畫面...", 200);

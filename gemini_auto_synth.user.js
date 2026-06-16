@@ -333,6 +333,39 @@
         });
     }
 
+    // 從 Supabase 雲端資料庫讀取穿搭資料
+    function fetchPayloadFromSupabase(sbUrl, sbKey, userId) {
+        updateStatus("🌐 偵測到雲端連線，正從 Supabase 載入穿搭素材...", "#3b82f6");
+        const url = `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}&select=*`;
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: url,
+            headers: {
+                "apikey": sbKey,
+                "Authorization": `Bearer ${sbKey}`,
+                "Content-Type": "application/json"
+            },
+            onload: function(response) {
+                try {
+                    const list = JSON.parse(response.responseText);
+                    const session = list?.[0];
+                    if (session && session.payload) {
+                        updateStatus("📥 從雲端成功獲取資料，開始自動合成...", "#06b6d4");
+                        window.vestisCloud = { sbUrl, sbKey, userId };
+                        automateWorkflow(session.payload);
+                    } else {
+                        updateStatus("⚠️ 雲端資料庫中沒有待處理的穿搭資料，請回主頁重試。", "#eab308");
+                    }
+                } catch(e) {
+                    updateStatus("❌ 解析雲端資料失敗: " + e.message, "#f43f5e");
+                }
+            },
+            onerror: function(err) {
+                updateStatus("❌ 連接雲端資料庫失敗，請檢查網路連線。", "#f43f5e");
+            }
+        });
+    }
+
     // 初始化與 VESTIS 網頁端的連線
     async function initConnection() {
         updateStatus("⏳ 正在等待 Gemini 網頁介面完全載入...", "#eab308");
@@ -345,8 +378,15 @@
             return;
         }
 
-        // 判斷 window.opener 能否通訊，否則改走本地伺服器
-        if (window.opener) {
+        // 優先判斷是否為雲端模式 (從 URL 參數獲取 Supabase 資訊)
+        const params = new URLSearchParams(window.location.search);
+        const sbUrl = params.get('sb_url');
+        const sbKey = params.get('sb_key');
+        const userId = params.get('user_id');
+
+        if (sbUrl && sbKey && userId) {
+            fetchPayloadFromSupabase(sbUrl, sbKey, userId);
+        } else if (window.opener) {
             updateStatus("🔗 已建立視窗連接，正向 VESTIS 要求穿搭資料...", "#22c55e");
             window.opener.postMessage({ type: "GEMINI_READY" }, "*");
         } else {
@@ -614,23 +654,52 @@
                         } catch(e) {}
                     }
                     
-                    // 2. 傳送到本地伺服器以供 VESTIS 輪詢接收
-                    GM_xmlhttpRequest({
-                        method: "POST",
-                        url: "http://localhost:8000/api/store_result",
-                        headers: { "Content-Type": "application/json" },
-                        data: JSON.stringify({ data: base64 }),
-                        onload: function() {
-                            updateStatus("🎉 合成圖已成功帶回 VESTIS 系統！本視窗即將自動關閉...", "#22c55e");
-                            setTimeout(() => {
-                                window.close();
-                            }, 2000);
-                        },
-                        onerror: function() {
-                            updateStatus("⚠️ 透過本地伺服器傳回失敗，請嘗試手動右鍵複製。", "#f43f5e");
-                            resultSent = false;
-                        }
-                    });
+                    // 2. 依模式傳送：雲端模式寫入 Supabase，本地模式傳送至本地伺服器
+                    if (window.vestisCloud) {
+                        const { sbUrl, sbKey, userId } = window.vestisCloud;
+                        GM_xmlhttpRequest({
+                            method: "PATCH",
+                            url: `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}`,
+                            headers: {
+                                "apikey": sbKey,
+                                "Authorization": `Bearer ${sbKey}`,
+                                "Content-Type": "application/json"
+                            },
+                            data: JSON.stringify({
+                                result: base64,
+                                status: "completed",
+                                updated_at: new Date().toISOString()
+                            }),
+                            onload: function() {
+                                updateStatus("🎉 合成圖已成功上傳雲端資料庫！本視窗即將自動關閉...", "#22c55e");
+                                setTimeout(() => {
+                                    window.close();
+                                }, 2000);
+                            },
+                            onerror: function(err) {
+                                console.error("[VESTIS Cloud] PATCH failed:", err);
+                                updateStatus("⚠️ 上傳至雲端資料庫失敗，請嘗試手動右鍵複製。", "#f43f5e");
+                                resultSent = false;
+                            }
+                        });
+                    } else {
+                        GM_xmlhttpRequest({
+                            method: "POST",
+                            url: "http://localhost:8000/api/store_result",
+                            headers: { "Content-Type": "application/json" },
+                            data: JSON.stringify({ data: base64 }),
+                            onload: function() {
+                                updateStatus("🎉 合成圖已成功帶回 VESTIS 系統！本視窗即將自動關閉...", "#22c55e");
+                                setTimeout(() => {
+                                    window.close();
+                                }, 2000);
+                            },
+                            onerror: function() {
+                                updateStatus("⚠️ 透過本地伺服器傳回失敗，請嘗試手動右鍵複製。", "#f43f5e");
+                                resultSent = false;
+                            }
+                        });
+                    }
                 };
                 reader.readAsDataURL(blob);
             },

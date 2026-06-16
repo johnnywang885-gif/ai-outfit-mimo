@@ -4,7 +4,36 @@
 
 ---
 
-## 🚀 最新更新項目 (2026-06-16 「個人衣櫃」單品刪除與背景自動合成防休眠優化)
+## 🚀 最新更新項目 (2026-06-16 VESTIS AI 雲端網頁版 Supabase 整合 — Phase 1)
+
+### 1. 訪客免註冊體驗模式 (Guest Mode)
+* **體驗優先**：支援訪客在不註冊登入的情況下，直接體驗 3 次 AI 擬真渲染或 Gemini 穿搭合成。
+* **次數限制**：透過 `localStorage.vestis_guest_credits` 進行訪客試穿次數扣除與防呆阻擋，額度扣完後會自動導引至會員中心。
+* **資料本地化**：訪客單品、收藏與日誌均暫存在本機 `localStorage`，保障即開即玩。
+
+### 2. Atelier 會員中心 (Google & Email 雙模態驗證)
+* **新分頁整合**：在左側邊欄與手機底部導航欄中新增「🔑 會員」分頁。
+* **雙通道驗證**：對接 Supabase Auth，支援「Email/密碼」的快速註冊與登入，並整合「Google 帳戶一鍵登入 (OAuth)」。
+* **雲端資料自動同步**：使用者登入後，系統會自動將訪客期間上傳的單品同步至雲端，並從雲端資料庫加載使用者專屬的衣櫃、收藏、日誌與數位分身。
+
+### 3. Supabase 雲端資料庫與安全 RLS 保護 (Serverless SQL)
+* **自動分身 trigger**：實作 PostgreSQL 觸發器，使用者註冊時自動於 `profiles` 表中建立預設分身欄位。
+* **安全行級鎖 (RLS)**：所有使用者資料表皆啟用行級安全策略 (Row Level Security)，使用者僅能存取與操作屬於自己 `auth.uid()` 的單品、日誌與收藏，防範越權漏洞。
+
+### 4. 雲端儲存桶隔離 (Supabase Storage)
+* **單品與分身圖片 CDN 化**：上傳自訂單品或生成數位分身時，Base64 圖片會自動上傳至 Supabase Public `wardrobe` 儲存桶中，並自動按使用者 ID `userId/filename` 分離存放，將生成的 HTTP 公開 URL 存回資料庫。
+* **防盜鏈與越權防禦**：Storage 僅允許 Authenticated 擁有者對其專屬資料夾寫入與刪除，一般訪客僅能 select 讀取公開連結。
+
+### 5. Deno Serverless AI 安全代理保護 (vton-proxy)
+* **金鑰保護**：建立 Supabase Edge Function `/vton-proxy`，在伺服器端讀取環境變數 `FAL_API_KEY`，前端 executeVTON 調用全面轉由 Edge Function 進行代理，徹底解決 `FAL_API_KEY` 在前端流出暴露的安全性隱患。
+* **向下相容**：若無 Supabase 金鑰或在本地模式下，executeVTON 會自動 fallback 回原本的 client-side API 直接調用，確保本地離線開發依然可用。
+
+### 6. 雲端 Gemini 自動化合成會話控制
+* **雲端會話同步**：Gemini 智慧合成調用時，改為 upsert 雲端 `gemini_sessions` 表。同時，背景 Gemini 自動化視窗載入時會自動透過 URL 參數 `sb_url`, `sb_key`, `user_id` 與 Supabase 建立連線，讀取 Payload 並 PATCH 寫回 completed base64 結果，完美支援雲端背景無感合成！
+
+---
+
+## 🚀 歷史更新項目 (2026-06-16 「個人衣櫃」單品刪除與背景自動合成防休眠優化)
 
 ### 1. 個人衣櫃所有單品刪除功能 (含預設與自訂單品)
 * **功能完整性**：現在個人衣櫃中所有的衣物（包括使用者自己上傳的自訂單品與系統內建的原有預設單品）均支援刪除功能。
