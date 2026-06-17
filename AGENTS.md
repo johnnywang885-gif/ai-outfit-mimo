@@ -78,3 +78,8 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **`modelFiles` 模特兒底圖陣列**：目前從資料夾 `穿搭照片/女模特兒/` 中載入全部共 54 張女模特兒底圖。主畫面上新增了半透明磨砂玻璃風格的左右切換按鈕（`.model-switch-btn`，`z-index: 25`），點選即可透過 `nextModel()` / `prevModel()` 和 `updateModelDisplay()` 進行順暢切換。
 - **Gemini 彈出視窗與焦點切換及防休眠機制**：自動合成開啟一個微小 (`200x200`) 視窗，並將坐標定位於螢幕可用寬高邊緣外 (`availWidth - 50, availHeight - 50`)，使僅有 `50x50` 像素留在螢幕內，其餘部分隱藏在邊界外以規避 Chrome 座標重設並達到極致隱形效果。同時，腳本內建了 WebRTC 連線 (`keepAliveWebRTC`) 與靜音音訊模擬 (`startSilentAudio`) 雙重機制，防止瀏覽器因為視窗被最小化或置於背景而進行 Tab Throttling CPU 節流限制。
 - **Gemini 自動化視窗安全標記與防護隔離機制**：為防範使用者在系統關閉或日常手動開啟 Gemini 分頁時誤觸發自動化腳本導致頁面卡死，`ai_outfit_prototype.html` 的 `window.open` 網址會帶有 `&vestis=1` 參數。`gemini_auto_synth.user.js` (v2.4) 在載入之初會進行此標記檢查，若非 VESTIS 自動化調用則立刻退出，確保日常 Gemini 使用完全不受影響。
+- **Supabase 全域變數衝突防護**：`index.html` 中原先宣告的 `let supabase` 變數會與 CDN 載入的 `window.supabase` 衝突，導致瀏覽器拋出 `SyntaxError: Identifier 'supabase' has already been declared` 進而中斷整個 JS 腳本執行。全域變數已統一改名為 `supabaseClient` 解決此衝突。
+- **訪客衣櫃雲端同步防遺失保護**：訪客狀態下拖曳上傳的 `localStorage` 單品（`vestis_custom_wardrobe`）在登入同步時，改為上傳至雲端 Storage 與資料庫確認成功後才從本地刪除。若發生任何上傳失敗，單品會安全保留於本地瀏覽器，防止在同步時永久遺失。
+- **Vercel 靜態專案部署與偵測干擾**：本專案為無建置步驟的純靜態 HTML 網頁。請勿將 `package.json` 與 `package-lock.json` 或 `node_modules` 上傳至 Vercel，否則 Vercel 偵測器會誤判為 Node.js 專案並啟動建置，導致部署卡死在 `UNKNOWN` 狀態。已在 `.gitignore` 排除相關檔案以實現極速靜態部署。
+- **Supabase 儲存空間（Storage）預設需求**：專案雲端儲存需要手動在 Supabase Dashboard 建立一個名稱為 **`wardrobe`**（區分大小寫）的 **Public** 儲存桶。若儲存桶不存在或權限未開，單品上傳與同步將會失敗。
+
