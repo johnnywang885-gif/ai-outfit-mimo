@@ -4,6 +4,7 @@
   "description": "VESTIS AI Outfit try-on system",
   "main": "index.html",
   "scripts": {
+    "build": "echo 'No build step required'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
