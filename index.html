@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VESTIS Atelier | 智慧擬真穿搭設計師</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabaseClient-js@2"></script>
     <style>
         :root {
             --bg-deep: #0e0a0d; /* Luxurious ultra-dark plum black */
@@ -2084,13 +2084,13 @@
         // --- Supabase Cloud Setup & Auth ---
         const SUPABASE_URL = "https://ncxzvbsrsiabcfjufpob.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jeHp2YnNyc2lhYmNmanVmcG9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1OTAwNDcsImV4cCI6MjA5NzE2NjA0N30.kRLoKBxfQVvFCWNYpNrYDGwBvuSU4n_kO7zLDMR1zLs";
-        let supabase = null;
+        let supabaseClient = null;
         let currentUser = null;
         let guestCredits = 3;
 
         if (typeof window.supabase !== 'undefined') {
             try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             } catch (err) {
                 console.error("Failed to initialize Supabase client:", err);
             }
@@ -2121,12 +2121,12 @@
         }
 
         async function checkSession() {
-            if (!supabase) return;
+            if (!supabaseClient) return;
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session } } = await supabaseClient.auth.getSession();
                 await handleSessionChange(session);
                 
-                supabase.auth.onAuthStateChange(async (event, session) => {
+                supabaseClient.auth.onAuthStateChange(async (event, session) => {
                     await handleSessionChange(session);
                 });
             } catch (err) {
@@ -2180,7 +2180,7 @@
                 return;
             }
             showToast("正在登入...");
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
                 showToast(`❌ 登入失敗: ${error.message}`);
             } else {
@@ -2200,7 +2200,7 @@
                 return;
             }
             showToast("正在註冊...");
-            const { data, error } = await supabase.auth.signUp({ email, password });
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) {
                 showToast(`❌ 註冊失敗: ${error.message}`);
             } else {
@@ -2209,8 +2209,8 @@
         }
 
         async function handleGoogleSignIn() {
-            if (!supabase) return;
-            const { error } = await supabase.auth.signInWithOAuth({
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin + window.location.pathname
@@ -2220,8 +2220,8 @@
         }
 
         async function handleSignOut() {
-            if (!supabase) return;
-            const { error } = await supabase.auth.signOut();
+            if (!supabaseClient) return;
+            const { error } = await supabaseClient.auth.signOut();
             if (error) {
                 showToast(`❌ 登出失敗: ${error.message}`);
             } else {
@@ -2230,7 +2230,7 @@
         }
 
         async function uploadImageToSupabase(dataUrl, filename) {
-            if (!currentUser || !supabase) return dataUrl;
+            if (!currentUser || !supabaseClient) return dataUrl;
             try {
                 const res = await fetch(dataUrl);
                 const blob = await res.blob();
@@ -2239,7 +2239,7 @@
                 const cleanName = filename.replace(/[^a-zA-Z0-9]/g, '_');
                 const filePath = `${currentUser.id}/${Date.now()}_${cleanName}.${extension}`;
                 
-                const { data, error } = await supabase.storage
+                const { data, error } = await supabaseClient.storage
                     .from('wardrobe')
                     .upload(filePath, blob, {
                         contentType: blob.type,
@@ -2247,7 +2247,7 @@
                     });
                 if (error) throw error;
                 
-                const { data: { publicUrl } } = supabase.storage
+                const { data: { publicUrl } } = supabaseClient.storage
                     .from('wardrobe')
                     .getPublicUrl(filePath);
                 
@@ -2260,14 +2260,14 @@
         }
 
         async function saveTwinProfile(data) {
-            if (currentUser && supabase) {
+            if (currentUser && supabaseClient) {
                 let imgUrl = data.img;
                 if (imgUrl.startsWith("data:")) {
                     showToast("⏳ 正在上傳分身相片至雲端...");
                     imgUrl = await uploadImageToSupabase(imgUrl, "twin_profile.png");
                 }
                 if (imgUrl) {
-                    const { error } = await supabase.from('profiles').upsert({
+                    const { error } = await supabaseClient.from('profiles').upsert({
                         id: currentUser.id,
                         height: data.h,
                         weight: data.w,
@@ -2295,7 +2295,7 @@
                 fullImgUrl: fullImgUrl
             };
             
-            if (currentUser && supabase) {
+            if (currentUser && supabaseClient) {
                 const outfitDetails = {
                     top: currentMannequinOutfit.top ? currentMannequinOutfit.top.id : null,
                     outerwear: currentMannequinOutfit.outerwear ? currentMannequinOutfit.outerwear.id : null,
@@ -2309,7 +2309,7 @@
                     cloudResultUrl = await uploadImageToSupabase(cloudResultUrl, "outfit_log_result.png");
                 }
                 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('outfit_logs')
                     .insert({
                         user_id: currentUser.id,
@@ -2330,9 +2330,9 @@
         }
 
         async function syncCloudData() {
-            if (!currentUser || !supabase) return;
+            if (!currentUser || !supabaseClient) return;
             
-            const { data: profile } = await supabase
+            const { data: profile } = await supabaseClient
                 .from('profiles')
                 .select('*')
                 .eq('id', currentUser.id)
@@ -2348,7 +2348,7 @@
                 loadProfile(twinData);
             }
             
-            const { data: favRows } = await supabase
+            const { data: favRows } = await supabaseClient
                 .from('favorites')
                 .select('item_id')
                 .eq('user_id', currentUser.id);
@@ -2357,7 +2357,7 @@
                 updateFavoritesUI();
             }
             
-            const { data: logRows } = await supabase
+            const { data: logRows } = await supabaseClient
                 .from('outfit_logs')
                 .select('*')
                 .eq('user_id', currentUser.id)
@@ -2385,7 +2385,7 @@
                                 imgUrl = await uploadImageToSupabase(imgUrl, item.name || "item.png");
                             }
                             if (imgUrl) {
-                                await supabase.from('wardrobe_items').insert({
+                                await supabaseClient.from('wardrobe_items').insert({
                                     user_id: currentUser.id,
                                     cat: item.cat,
                                     name: item.name || "私有單品",
@@ -2402,14 +2402,14 @@
                 }
             }
 
-            const { data: wardrobeRows } = await supabase
+            const { data: wardrobeRows } = await supabaseClient
                 .from('wardrobe_items')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .order('created_at', { ascending: false });
             
             let deletedIds = [];
-            const { data: deletedRows } = await supabase
+            const { data: deletedRows } = await supabaseClient
                 .from('deleted_default_items')
                 .select('item_id')
                 .eq('user_id', currentUser.id);
@@ -2628,10 +2628,10 @@
 
         // --- CORE VTON API CALLER ---
         async function executeVTON(cat, garmentUrl, humanUrl, itemName = "") {
-            if (supabase) {
+            if (supabaseClient) {
                 console.log(`[VESTIS Cloud] 呼叫 vton-proxy 邊緣函數, engine=${VTON_ENGINE}`);
                 try {
-                    const { data, error } = await supabase.functions.invoke('vton-proxy', {
+                    const { data, error } = await supabaseClient.functions.invoke('vton-proxy', {
                         body: { cat, garmentUrl, humanUrl, itemName, engine: VTON_ENGINE }
                     });
                     if (error) throw error;
@@ -3700,8 +3700,8 @@
                 wardrobe.splice(idx, 1);
                 const isDefault = defaultWardrobe.some(item => item.id === id);
                 if (isDefault) {
-                    if (currentUser && supabase) {
-                        supabase.from('deleted_default_items').insert({ user_id: currentUser.id, item_id: id }).then(() => syncCloudData());
+                    if (currentUser && supabaseClient) {
+                        supabaseClient.from('deleted_default_items').insert({ user_id: currentUser.id, item_id: id }).then(() => syncCloudData());
                     } else {
                         let deletedSaved = localStorage.getItem("vestis_deleted_default_items");
                         let deletedIds = [];
@@ -3714,8 +3714,8 @@
                         }
                     }
                 } else {
-                    if (currentUser && supabase) {
-                        supabase.from('wardrobe_items').delete().eq('id', id).eq('user_id', currentUser.id).then(() => syncCloudData());
+                    if (currentUser && supabaseClient) {
+                        supabaseClient.from('wardrobe_items').delete().eq('id', id).eq('user_id', currentUser.id).then(() => syncCloudData());
                     } else {
                         saveWardrobe();
                     }
@@ -3864,8 +3864,8 @@
             const idx = favorites.indexOf(id);
             if (idx > -1) { 
                 favorites.splice(idx, 1); 
-                if (currentUser && supabase) {
-                    await supabase.from('favorites').delete().eq('user_id', currentUser.id).eq('item_id', id);
+                if (currentUser && supabaseClient) {
+                    await supabaseClient.from('favorites').delete().eq('user_id', currentUser.id).eq('item_id', id);
                     await syncCloudData();
                 } else {
                     localStorage.setItem("vestis_favorites", JSON.stringify(favorites));
@@ -3873,8 +3873,8 @@
                 }
             } else { 
                 favorites.push(id); 
-                if (currentUser && supabase) {
-                    await supabase.from('favorites').insert({ user_id: currentUser.id, item_id: id });
+                if (currentUser && supabaseClient) {
+                    await supabaseClient.from('favorites').insert({ user_id: currentUser.id, item_id: id });
                     await syncCloudData();
                 } else {
                     localStorage.setItem("vestis_favorites", JSON.stringify(favorites));
@@ -3957,12 +3957,12 @@
         };
 
         async function processImage(dataUrl, name, shouldWear = false) {
-            if (currentUser && supabase) {
+            if (currentUser && supabaseClient) {
                 showToast("⏳ 正在上傳單品相片至雲端...");
                 const imgUrl = await uploadImageToSupabase(dataUrl, name);
                 if (!imgUrl) return;
                 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('wardrobe_items')
                     .insert({
                         user_id: currentUser.id,
@@ -5204,7 +5204,7 @@
         })();
 
         // 偵測本地伺服器是否已啟動，給予人性化引導 (僅於非雲端模式運作)
-        if (!supabase) {
+        if (!supabaseClient) {
             fetch('http://localhost:8000/api/get_payload').catch(err => {
                 console.warn("[VESTIS] Local server check failed, likely not running:", err);
                 setTimeout(() => {
@@ -5811,10 +5811,10 @@
             };
             vestisPayloadForGemini = payload;
 
-            if (currentUser && supabase) {
+            if (currentUser && supabaseClient) {
                 // 雲端模式：寫入 Supabase gemini_sessions
                 addHUDLine("📡 正在向雲端資料庫註冊穿搭 Payload 數據...", 400);
-                supabase.from('gemini_sessions').upsert({
+                supabaseClient.from('gemini_sessions').upsert({
                     user_id: currentUser.id,
                     payload: payload,
                     result: null,
@@ -5855,7 +5855,7 @@
                 const top = (window.screen.availHeight || window.screen.height) - 50;
                 
                 let geminiUrl = "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1";
-                if (currentUser && supabase) {
+                if (currentUser && supabaseClient) {
                     geminiUrl += `&sb_url=${encodeURIComponent(SUPABASE_URL)}&sb_key=${encodeURIComponent(SUPABASE_KEY)}&user_id=${currentUser.id}`;
                 }
                 
@@ -5991,8 +5991,8 @@
             console.log('[VESTIS] Starting result polling...');
             
             resultPollingInterval = setInterval(() => {
-                if (currentUser && supabase) {
-                    supabase.from('gemini_sessions')
+                if (currentUser && supabaseClient) {
+                    supabaseClient.from('gemini_sessions')
                         .select('result, status')
                         .eq('user_id', currentUser.id)
                         .single()
@@ -6004,7 +6004,7 @@
                                 stopResultPolling();
                                 loadSynthesizedImageFromBase64(data.result);
                                 
-                                supabase.from('gemini_sessions').update({ status: 'idle' }).eq('user_id', currentUser.id).then(()=>{});
+                                supabaseClient.from('gemini_sessions').update({ status: 'idle' }).eq('user_id', currentUser.id).then(()=>{});
                             }
                         })
                         .catch(err => {});
