@@ -2450,19 +2450,23 @@
 
         function getProxiedImageUrl(url) {
             if (!url) return '';
-            if (url.startsWith('http') && !url.includes('/api/proxy_image')) {
-                try {
-                    const u = new URL(url);
-                    if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.host === window.location.host) {
-                        return url;
-                    }
-                } catch (e) {}
-                const isLocalFile = window.location.protocol === 'file:';
-                const base = isLocalFile ? 'http://localhost:8000' : '';
+            if (!url.startsWith('http')) return url;
+            if (url.includes('/api/proxy_image')) return url;
+            try {
+                const u = new URL(url);
+                if (u.hostname === 'localhost' || u.hostname === '127.0.0.1' || u.host === window.location.host) {
+                    return url;
+                }
+            } catch (e) {}
+            
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+            if (isLocal) {
+                const base = window.location.protocol === 'file:' ? 'http://localhost:8000' : '';
                 return `${base}/api/proxy_image?url=${encodeURIComponent(url)}`;
             }
             return url;
         }
+
 
         function getSimplifiedPurchaseLink(item) {
             if (!item || !item.link) return '#';
@@ -2772,7 +2776,7 @@
 
         async function loadDynamicModels() {
             try {
-                const response = await fetch('/api/list_models');
+                const response = await fetch('http://localhost:8000/api/list_models');
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.models && data.models.length > 0) {
@@ -4189,7 +4193,7 @@
         async function getBase64(url) {
             if (!url || url.length < 5) throw new Error('無效的圖片 URL');
             
-            // 如果是相對路徑或本地 file:// 協議路徑，強制定向至本地 http://localhost:8000/ 服務
+            // 如果是相對路徑或本地 file:// 協議路徑，定向至適當服務
             // 由於 vestis_server.py 具有 Access-Control-Allow-Origin: * 的 CORS 標頭，這樣能徹底解決 Canvas tainted 問題
             if (!url.startsWith('data:')) {
                 if (url.startsWith('file:///')) {
@@ -4198,9 +4202,15 @@
                         url = 'http://localhost:8000/' + url.substring(idx);
                     }
                 } else if (!url.startsWith('http')) {
-                    url = 'http://localhost:8000/' + url;
+                    if (window.location.protocol === 'file:') {
+                        url = 'http://localhost:8000/' + url;
+                    } else {
+                        // 在雲端部署時，從當前 Origin 載入同源資源以防 CORS 問題及本地伺服器未啟動
+                        url = window.location.origin + '/' + url;
+                    }
                 }
             }
+
 
             if (url.startsWith('http') && !url.includes('/api/proxy_image')) {
                 url = getProxiedImageUrl(url);
@@ -5195,7 +5205,7 @@
 
         // 偵測本地伺服器是否已啟動，給予人性化引導 (僅於非雲端模式運作)
         if (!supabase) {
-            fetch('/api/get_payload').catch(err => {
+            fetch('http://localhost:8000/api/get_payload').catch(err => {
                 console.warn("[VESTIS] Local server check failed, likely not running:", err);
                 setTimeout(() => {
                     showToast("⚠️ 偵測到本地中繼伺服器未啟動！請雙擊執行資料夾下的「一鍵啟動_VESTIS_AI.bat」以防系統功能失效！", "error");
@@ -5821,7 +5831,7 @@
             } else {
                 // 本地模式：送存至本地伺服器
                 addHUDLine("📡 正在向本地伺服器註冊穿搭 Payload 數據...", 400);
-                fetch('/api/store_payload', {
+                fetch('http://localhost:8000/api/store_payload', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -5999,7 +6009,7 @@
                         })
                         .catch(err => {});
                 } else {
-                    fetch('/api/get_result')
+                    fetch('http://localhost:8000/api/get_result')
                         .then(res => {
                             if (!res.ok) throw new Error();
                             return res.json();
