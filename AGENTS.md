@@ -82,4 +82,6 @@ Requires Python in PATH. `一鍵啟動_VESTIS_AI.bat` automatically launches the
 - **訪客衣櫃雲端同步防遺失保護**：訪客狀態下拖曳上傳的 `localStorage` 單品（`vestis_custom_wardrobe`）在登入同步時，改為上傳至雲端 Storage 與資料庫確認成功後才從本地刪除。若發生任何上傳失敗，單品會安全保留於本地瀏覽器，防止在同步時永久遺失。
 - **Vercel 靜態專案部署與偵測干擾**：本專案為無建置步驟的純靜態 HTML 網頁。請勿將 `package.json` 與 `package-lock.json` 或 `node_modules` 上傳至 Vercel，否則 Vercel 偵測器會誤判為 Node.js 專案並啟動建置，導致部署卡死在 `UNKNOWN` 狀態。已在 `.gitignore` 排除相關檔案以實現極速靜態部署。
 - **Supabase 儲存空間（Storage）預設需求**：專案雲端儲存需要手動在 Supabase Dashboard 建立一個名稱為 **`wardrobe`**（區分大小寫）的 **Public** 儲存桶。若儲存桶不存在或權限未開，單品上傳與同步將會失敗。
+- **Supabase CDN 套件名稱致命錯誤**：`index.html` 的 CDN script 標籤必須為 `@supabase/supabase-js@2`，**不可**誤寫為 `@supabase/supabaseClient-js@2`（後者不存在）。若 CDN 載入失敗，`window.supabase` 為 undefined，整個 Auth / Storage / DB 功能全部癱瘓，且不報錯，極難診斷。
+- **`vercel.json` 靜態部署設定必要**：專案根目錄必須存在 `vercel.json` 並設定 `@vercel/static` builder，否則 Vercel 無法正確偵測靜態網站，導致所有新部署卡死在 `UNKNOWN` 狀態，永遠回滾至最後一個成功的舊版本。
 
