@@ -1,2 +1,10 @@
 .antigravitycli/
 temp_check.js
+
+.vercel
+
+node_modules/
+package-lock.json
+screenshot_*.png
+page_debug_*.png
+螢幕擷取畫面*.png

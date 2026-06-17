@@ -2379,13 +2379,16 @@
                     const localCustoms = JSON.parse(localCustomsSaved);
                     if (localCustoms && localCustoms.length > 0) {
                         showToast("📦 偵測到訪客單品，正在同步至雲端...");
+                        const remainingCustoms = [];
                         for (const item of localCustoms) {
                             let imgUrl = item.img;
+                            let uploadSuccess = true;
                             if (imgUrl.startsWith("data:")) {
                                 imgUrl = await uploadImageToSupabase(imgUrl, item.name || "item.png");
+                                if (!imgUrl) uploadSuccess = false;
                             }
-                            if (imgUrl) {
-                                await supabaseClient.from('wardrobe_items').insert({
+                            if (uploadSuccess && imgUrl) {
+                                const { error } = await supabaseClient.from('wardrobe_items').insert({
                                     user_id: currentUser.id,
                                     cat: item.cat,
                                     name: item.name || "私有單品",
@@ -2393,9 +2396,23 @@
                                     img_url: imgUrl,
                                     is_external: !!item.isExternal
                                 });
+                                if (error) {
+                                    console.error('[VESTIS] Failed to insert migrated item:', error);
+                                    uploadSuccess = false;
+                                }
+                            } else {
+                                uploadSuccess = false;
+                            }
+                            if (!uploadSuccess) {
+                                remainingCustoms.push(item);
                             }
                         }
-                        localStorage.removeItem("vestis_custom_wardrobe");
+                        if (remainingCustoms.length > 0) {
+                            localStorage.setItem("vestis_custom_wardrobe", JSON.stringify(remainingCustoms));
+                            showToast(`⚠️ 部分單品同步失敗，已保留在本地`, "warning");
+                        } else {
+                            localStorage.removeItem("vestis_custom_wardrobe");
+                        }
                     }
                 } catch(e) {
                     console.error("Failed to migrate guest wardrobe:", e);
