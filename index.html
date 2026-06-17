@@ -762,6 +762,8 @@
             pointer-events: none;
         }
         .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: linear-gradient(45deg, var(--danger), #b91c1c); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3); }
+        .toast.warning { background: linear-gradient(45deg, #f59e0b, #d97706); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3); }
 
         .scan-line {
             position: absolute;
@@ -2173,6 +2175,10 @@
         }
 
         async function handleEmailSignIn() {
+            if (!supabaseClient) {
+                showToast("❌ 無法使用認證服務，請檢查網路連線");
+                return;
+            }
             const email = document.getElementById("auth-email").value;
             const password = document.getElementById("auth-password").value;
             if (!email || !password) {
@@ -2180,15 +2186,23 @@
                 return;
             }
             showToast("正在登入...");
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) {
-                showToast(`❌ 登入失敗: ${error.message}`);
-            } else {
-                showToast("🎉 登入成功！");
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    showToast(`❌ 登入失敗: ${error.message}`);
+                } else {
+                    showToast("🎉 登入成功！");
+                }
+            } catch (err) {
+                showToast(`❌ 登入失敗: ${err.message}`);
             }
         }
 
         async function handleEmailSignUp() {
+            if (!supabaseClient) {
+                showToast("❌ 無法使用認證服務，請檢查網路連線");
+                return;
+            }
             const email = document.getElementById("auth-email").value;
             const password = document.getElementById("auth-password").value;
             if (!email || !password) {
@@ -2200,11 +2214,15 @@
                 return;
             }
             showToast("正在註冊...");
-            const { data, error } = await supabaseClient.auth.signUp({ email, password });
-            if (error) {
-                showToast(`❌ 註冊失敗: ${error.message}`);
-            } else {
-                showToast("🎉 註冊成功！請檢查您的信箱進行驗證或直接登入（若已啟用免驗證）");
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    showToast(`❌ 註冊失敗: ${error.message}`);
+                } else {
+                    showToast("🎉 註冊成功！請檢查您的信箱進行驗證或直接登入（若已啟用免驗證）");
+                }
+            } catch (err) {
+                showToast(`❌ 註冊失敗: ${err.message}`);
             }
         }
 
@@ -2792,6 +2810,11 @@
         let currentModelIndex = Math.floor(Math.random() * modelFiles.length);
 
         async function loadDynamicModels() {
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+            if (!isLocal) {
+                console.log("[VESTIS AI] Cloud deployment detected, using hardcoded model files.");
+                return;
+            }
             try {
                 const response = await fetch('http://localhost:8000/api/list_models');
                 if (response.ok) {
@@ -2809,7 +2832,8 @@
 
         async function initRandomModel() {
             const baseImg = document.getElementById('base-model');
-            baseImg.src = modelFiles[currentModelIndex];
+            const src = modelFiles[currentModelIndex];
+            baseImg.src = src.startsWith('http') ? src : src.split('/').map(s => encodeURIComponent(s)).join('/');
             baseImg.style.display = 'block';
             baseImg.style.filter = 'none'; 
             document.getElementById('user-head').style.display = 'none';
@@ -2829,7 +2853,8 @@
 
         function updateModelDisplay() {
             const baseImg = document.getElementById('base-model');
-            baseImg.src = modelFiles[currentModelIndex];
+            const src = modelFiles[currentModelIndex];
+            baseImg.src = src.startsWith('http') ? src : src.split('/').map(s => encodeURIComponent(s)).join('/');
             baseImg.style.display = 'block';
             baseImg.style.filter = 'none'; 
             document.getElementById('user-head').style.display = 'none'; 
@@ -3530,7 +3555,7 @@
         }
 
         function switchSidebarTab(tabName) {
-            const panels = ['sidebar-wardrobe-panel', 'sidebar-twin-panel', 'sidebar-assets-panel'];
+            const panels = ['sidebar-wardrobe-panel', 'sidebar-twin-panel', 'sidebar-assets-panel', 'sidebar-account-panel'];
             panels.forEach(p => {
                 const el = document.getElementById(p);
                 if (el) el.style.display = 'none';
@@ -3539,10 +3564,12 @@
             const wardrobeBtn = document.getElementById('btn-tab-wardrobe');
             const twinBtn = document.getElementById('btn-tab-twin');
             const assetsBtn = document.getElementById('btn-tab-assets');
+            const accountBtn = document.getElementById('btn-tab-account');
             
             if (wardrobeBtn) wardrobeBtn.classList.remove('active');
             if (twinBtn) twinBtn.classList.remove('active');
             if (assetsBtn) assetsBtn.classList.remove('active');
+            if (accountBtn) accountBtn.classList.remove('active');
             
             if (tabName === 'wardrobe') {
                 const el = document.getElementById('sidebar-wardrobe-panel');
@@ -3556,6 +3583,10 @@
                 const el = document.getElementById('sidebar-assets-panel');
                 if (el) el.style.display = 'flex';
                 if (assetsBtn) assetsBtn.classList.add('active');
+            } else if (tabName === 'account') {
+                const el = document.getElementById('sidebar-account-panel');
+                if (el) el.style.display = 'flex';
+                if (accountBtn) accountBtn.classList.add('active');
             }
         }
 
@@ -4180,11 +4211,15 @@
         }
 
         // --- TOAST AND DIALOG NOTIFICATIONS ---
-        function showToast(msg) {
+        function showToast(msg, severity) {
             const t = document.getElementById('toast');
             t.innerText = msg;
+            t.classList.remove('error', 'warning');
+            if (severity === 'error' || severity === 'warning') t.classList.add(severity);
             t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            setTimeout(() => {
+                t.classList.remove('show', 'error', 'warning');
+            }, 3000);
         }
 
         // --- GLOBAL REPORT CONTAINER ---
@@ -4223,7 +4258,8 @@
                         url = 'http://localhost:8000/' + url;
                     } else {
                         // 在雲端部署時，從當前 Origin 載入同源資源以防 CORS 問題及本地伺服器未啟動
-                        url = window.location.origin + '/' + url;
+                        // encodeURI 確保中文路徑正確傳遞
+                        url = window.location.origin + '/' + url.split('/').map(s => encodeURIComponent(s)).join('/');
                     }
                 }
             }
@@ -5220,8 +5256,9 @@
             initRandomModel();
         })();
 
-        // 偵測本地伺服器是否已啟動，給予人性化引導 (僅於非雲端模式運作)
-        if (!supabaseClient) {
+        // 偵測本地伺服器是否已啟動，給予人性化引導 (僅於本地端模式運作)
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        if (isLocal && !supabaseClient) {
             fetch('http://localhost:8000/api/get_payload').catch(err => {
                 console.warn("[VESTIS] Local server check failed, likely not running:", err);
                 setTimeout(() => {
@@ -5674,6 +5711,12 @@
                     colLeft.style.height = 'calc(100vh - 56px)';
                     colLeft.style.overflowY = 'auto';
                     switchSidebarTab('assets');
+                    break;
+                case 'account':
+                    colLeft.style.display = 'flex';
+                    colLeft.style.height = 'calc(100vh - 56px)';
+                    colLeft.style.overflowY = 'auto';
+                    switchSidebarTab('account');
                     break;
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
