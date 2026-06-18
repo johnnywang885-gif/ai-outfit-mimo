@@ -91,7 +91,7 @@
             font-size: 1.85rem;
             font-weight: 600;
             letter-spacing: 3px;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.8rem;
             color: var(--text-h);
             text-align: center;
             text-transform: uppercase;
@@ -104,13 +104,23 @@
         }
         .brand-subtitle {
             font-family: 'Montserrat', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 4px;
+            font-size: 0.85rem;
+            letter-spacing: 3px;
             color: var(--accent);
             text-transform: none;
-            margin-top: 4px;
-            opacity: 0.75;
-            text-shadow: 0 0 12px rgba(232, 167, 185, 0.15);
+            margin-top: 5px;
+            opacity: 0.9;
+            text-shadow: 0 0 12px rgba(232, 167, 185, 0.2);
+        }
+        .brand-tagline {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            color: var(--text-p);
+            text-transform: none;
+            margin-top: 3px;
+            opacity: 0.6;
+            font-weight: 400;
         }
         
         /* LUXURY SIDEBAR TABS & PANELS */
@@ -119,8 +129,8 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--glass-border);
             border-radius: 100px;
-            padding: 4px;
-            margin-bottom: 1.5rem;
+            padding: 3px;
+            margin-bottom: 0.8rem;
             position: relative;
             flex-shrink: 0;
         }
@@ -129,9 +139,9 @@
             background: transparent;
             border: none;
             color: var(--text-p);
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            padding: 8px 0;
+            padding: 6px 0;
             cursor: pointer;
             border-radius: 100px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -144,13 +154,13 @@
         }
         .panel-section-title {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            margin-top: 0.5rem;
-            margin-bottom: 1rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.5rem;
             border-left: 2px solid var(--accent);
             padding-left: 8px;
             flex-shrink: 0;
@@ -160,7 +170,7 @@
         .tab-bar {
             display: flex;
             gap: 4px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             background: rgba(255, 255, 255, 0.02);
             padding: 4px;
             border-radius: 12px;
@@ -171,9 +181,9 @@
             background: transparent;
             border: none;
             color: var(--text-p);
-            padding: 8px 2px;
+            padding: 6px 2px;
             border-radius: 8px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -190,30 +200,30 @@
         #wardrobe-content {
             flex: 1;
             overflow-y: auto;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             padding-right: 2px;
         }
         
         .cat-title {
-            font-size: 0.8rem;
+            font-size: 0.72rem;
             font-weight: 700;
             color: var(--text-p);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
 
         /* WARDROBE GRID - 2 COLUMNS */
         .item-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 8px;
             width: 100%;
         }
         .item-card {
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--glass-border);
-            border-radius: 14px;
+            border-radius: 10px;
             width: 100%;
             aspect-ratio: 1;
             overflow: hidden;
@@ -240,10 +250,13 @@
         .trash-zone {
             background: rgba(239, 68, 68, 0.03);
             border: 1.5px dashed rgba(239, 68, 68, 0.2);
-            border-radius: 14px;
-            padding: 1rem;
-            text-align: center;
-            font-size: 0.75rem;
+            border-radius: 10px;
+            padding: 0.5rem 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.72rem;
             color: var(--danger);
             cursor: pointer;
             transition: 0.3s;
@@ -321,10 +334,10 @@
             transform: translateY(-50%) scale(0.95);
         }
         .model-switch-left {
-            left: -25px;
+            left: 10px;
         }
         .model-switch-right {
-            right: -25px;
+            right: 10px;
         }
 
         .scene-bg {
@@ -827,11 +840,15 @@
 
             .brand {
                 font-size: 1.2rem;
-                margin-bottom: 1rem;
+                margin-bottom: 0.6rem;
             }
             .brand-subtitle {
-                font-size: 0.55rem;
-                letter-spacing: 3px;
+                font-size: 0.65rem;
+                letter-spacing: 2px;
+            }
+            .brand-tagline {
+                font-size: 0.45rem;
+                letter-spacing: 1.5px;
             }
 
             .tab-bar {
@@ -1314,9 +1331,9 @@
         .outfit-frame {
             position: absolute;
             right: 1.25rem;
-            top: 1.25rem;
-            bottom: 7.5rem; /* 避開左下角的動作按鈕 */
-            width: 90px;
+            top: 1rem;
+            bottom: 1rem;
+            width: 80px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -1324,17 +1341,17 @@
             z-index: 10;
             background: rgba(10, 10, 12, 0.45);
             border: 1px solid rgba(232, 167, 185, 0.1);
-            border-radius: 20px;
-            padding: 12px 6px;
+            border-radius: 18px;
+            padding: 8px 5px;
             backdrop-filter: blur(8px);
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            pointer-events: auto; /* Ensure clicks are captured */
+            pointer-events: auto;
         }
         
         .outfit-slot-wrapper {
             position: relative;
-            width: 76px;
-            height: 76px;
+            width: 66px;
+            height: 66px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -1370,7 +1387,7 @@
         }
 
         .slot-placeholder {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             color: rgba(255, 255, 255, 0.15);
             transition: 0.3s;
             pointer-events: none;
@@ -1426,16 +1443,16 @@
             .outfit-frame {
                 right: 0.5rem;
                 top: 0.5rem;
-                bottom: 8rem; /* 行動端避開底部的按鈕和選單 */
-                width: 60px;
-                padding: 6px 4px;
+                bottom: 0.5rem;
+                width: 55px;
+                padding: 5px 3px;
                 border-radius: 12px;
-                gap: 6px;
+                gap: 4px;
                 background: rgba(10, 10, 12, 0.75);
             }
             .outfit-slot-wrapper {
-                width: 50px;
-                height: 50px;
+                width: 44px;
+                height: 44px;
             }
             .slot-placeholder {
                 font-size: 1.2rem;
@@ -1475,7 +1492,7 @@
     <div class="app-shell">
         <!-- LEFT SIDEBAR -->
         <aside class="col-left">
-            <div class="brand">VESTIS <span>ATELIER</span><div class="brand-subtitle">✦ 繆思穿搭 ✦</div></div>
+            <div class="brand">VESTIS <span>ATELIER</span><div class="brand-subtitle">✦ 繆思穿搭 ✦</div><div class="brand-tagline">在指尖與光影之間，遇見最美的自己</div></div>
             
             <!-- Sidebar Navigation Tabs -->
             <div class="sidebar-nav-tabs">
@@ -1487,9 +1504,9 @@
             
             <!-- Tab 1: Wardrobe Panel -->
             <div id="sidebar-wardrobe-panel" class="sidebar-panel" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <div style="display: flex; gap: 8px; margin-bottom: 1.25rem; flex-shrink: 0;">
-                    <button class="btn-prime" style="flex: 1; padding: 11px; margin-bottom: 0;" onclick="triggerUpload()">📁 上傳</button>
-                    <button class="btn-prime" style="flex: 1; padding: 11px; margin-bottom: 0; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
+                <div style="display: flex; gap: 8px; margin-bottom: 0.6rem; flex-shrink: 0;">
+                    <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem;" onclick="triggerUpload()">📁 上傳</button>
+                    <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
                 </div>
                 <input type="file" id="file-input" hidden accept="image/*">
                 
@@ -1507,8 +1524,7 @@
 
                 <!-- Drag to Trash Zone -->
                 <div class="trash-zone" id="trash-zone">
-                    <div style="font-size: 1.4rem; margin-bottom: 3px;">🗑️</div>
-                    拖曳至此處移除衣物單品
+                    🗑️ 拖曳至此處移除衣物單品
                 </div>
             </div>
             
@@ -1779,7 +1795,7 @@
                 </div>
 
                 <!-- Trial Actions - Relocated to bottom-left corner so they don't block the model's body, and are easy to access -->
-                <div id="trial-actions-panel" style="position:absolute; bottom: 1.25rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; gap: 8px;">
+                <div id="trial-actions-panel" style="position:absolute; bottom: 0.75rem; left: 1.25rem; z-index:20; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; max-width: 80%;">
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto;" onclick="randomize()">✦ AI 美學穿搭建議</button>
                     <button class="btn-prime" style="padding: 8px 18px; border-radius: 100px; font-size: 0.75rem; margin-bottom: 0; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--glass-border); width: auto; color: white;" onclick="triggerGeminiQuickSynth()">📸 一鍵多圖自動合成</button>
                     <div style="display: flex; flex-direction: column; gap: 6px; width: auto; background: rgba(15, 23, 42, 0.65); padding: 8px; border-radius: 16px; border: 1px solid var(--glass-border); backdrop-filter: blur(10px);">
@@ -2242,14 +2258,32 @@
         }
 
         async function handleGoogleSignIn() {
-            if (!supabaseClient) return;
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin + window.location.pathname
+            if (!supabaseClient) {
+                showToast("❌ 系統未成功連線至 Supabase 資料庫，無法使用 Google 登入", "error");
+                return;
+            }
+            try {
+                const redirectUrl = window.location.origin + "/";
+                console.log("[VESTIS Auth] Google Sign-in redirect URL:", redirectUrl);
+                
+                const { error } = await supabaseClient.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                        redirectTo: redirectUrl
+                    }
+                });
+                if (error) {
+                    console.error("[VESTIS Auth] Google Sign-in error:", error);
+                    let msg = `❌ Google 登入失敗: ${error.message}`;
+                    if (error.message.includes("provider") || error.message.includes("not enabled")) {
+                        msg += " (請至 Supabase 控制台的 Auth -> Providers 開啟 Google 登入功能)";
+                    }
+                    showToast(msg, "error");
                 }
-            });
-            if (error) showToast(`❌ Google 登入失敗: ${error.message}`);
+            } catch (err) {
+                console.error("[VESTIS Auth] Google Sign-in exception:", err);
+                showToast(`❌ Google 登入發生異常: ${err.message}`, "error");
+            }
         }
 
         async function handleSignOut() {
@@ -5589,6 +5623,7 @@
         }
 
         async function startQuickVTON() {
+            isProcessingSynthesizedImage = false;
             const personPreview = document.getElementById('qs-preview-person');
             const topPreview = document.getElementById('qs-preview-top');
             const bottomPreview = document.getElementById('qs-preview-bottom');
@@ -5769,6 +5804,7 @@
         });
 
         async function triggerGeminiQuickSynth() {
+            isProcessingSynthesizedImage = false;
             if (!currentUser) {
                 if (guestCredits <= 0) {
                     showToast("⚠️ 免費試穿額度已用完，請先登入或註冊會員！", "error");
@@ -5965,6 +6001,11 @@
         }
 
         async function loadSynthesizedImageFromBase64(dataUrl) {
+            if (isProcessingSynthesizedImage) {
+                console.log("[VESTIS] Synthesis result already processing/processed, ignoring duplicate call.");
+                return;
+            }
+            isProcessingSynthesizedImage = true;
             try {
                 dataUrl = await getBase64(dataUrl);
             } catch (err) {
@@ -6031,6 +6072,7 @@
         let activeGeminiWindow = null;
         let vestisPayloadForGemini = null;
         let resultPollingInterval = null;
+        let isProcessingSynthesizedImage = false;
 
         let geminiHUDInterval = null;
         function startGeminiProgressHUD() {
