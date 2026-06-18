@@ -1268,53 +1268,103 @@
            依使用者角度調整字體大小，放大偏小之文字與按鈕以利閱讀
            ========================================================================= */
         
-        /* 1. 桌面與平板端 (Desktop/Tablet) 全局與區域字體放大與間距縮減 */
-        .sidebar-nav-btn { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
+        /* 1. 桌面與平板端 (Desktop/Tablet) 全局與區域字體微調與高級感精緻化 */
+        .col-left {
+            padding: 0.8rem 0.8rem 0.5rem 0.8rem !important;
+        }
+        .brand {
+            font-size: 1.45rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        .brand-subtitle {
+            font-size: 0.85rem !important;
+        }
+        .brand-tagline {
+            font-size: 0.62rem !important;
+        }
+        .sidebar-nav-tabs {
+            margin-bottom: 0.25rem !important;
+        }
+        .sidebar-nav-btn { font-size: 0.78rem !important; padding: 3px 0 !important; }
         .panel-section-title { 
-            font-size: 1.35rem; 
+            font-size: 1.05rem; 
             margin-top: 0.15rem !important; 
             margin-bottom: 0.35rem !important; 
-        } /* 1.25rem -> 1.35rem, and tight margin */
-        .tab-btn { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
-        .cat-title { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
-        .trash-zone { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        }
+        .tab-bar {
+            margin-bottom: 0.25rem !important;
+        }
+        .tab-btn { font-size: 0.72rem !important; padding: 3px 2px !important; }
+        .cat-title { 
+            font-size: 0.75rem !important; 
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.25rem !important;
+        }
+        .trash-zone { font-size: 0.72rem !important; }
         
         /* 側欄分身與即時分析 */
-        #profile-name { font-size: 0.95rem !important; } /* 0.85rem -> 0.95rem */
-        #profile-stats { font-size: 0.88rem !important; } /* 0.7rem -> 0.88rem */
-        .twin-card .btn-prime { font-size: 0.78rem !important; } /* 0.65rem -> 0.78rem */
-        .stat-group span, .stats-card span { font-size: 0.85rem !important; } /* 0.75rem -> 0.85rem */
+        #profile-name { font-size: 0.82rem !important; }
+        #profile-stats { font-size: 0.75rem !important; }
+        .twin-card .btn-prime { font-size: 0.68rem !important; }
+        .stat-group span, .stats-card span { font-size: 0.72rem !important; }
         
-        /* 說明文字字體放大 */
+        /* 說明文字字體與版面優化 */
         .twin-card div[style*="font-size: 0.7rem"],
         #auth-unauthenticated div[style*="font-size: 0.75rem"],
         #auth-unauthenticated div[style*="font-size: 0.7rem"] {
-            font-size: 0.82rem !important;
-            line-height: 1.45;
+            font-size: 0.75rem !important;
+            line-height: 1.4;
         }
         #auth-unauthenticated div[style*="font-size: 0.85rem"] {
-            font-size: 0.95rem !important;
+            font-size: 0.82rem !important;
         }
         
         /* 展示區與頂部工具列 */
-        .btn-settings { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
-        .advisor-summary { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
-        .btn-report-trigger { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
+        .btn-settings { 
+            font-size: 0.72rem !important; 
+            padding: 5px 12px !important; 
+        }
+        .advisor-bar {
+            padding: 0.5rem 0.8rem !important;
+            border-radius: 12px !important;
+            gap: 0.5rem !important;
+        }
+        .advisor-summary { font-size: 0.78rem !important; }
+        .btn-report-trigger { 
+            font-size: 0.72rem !important; 
+            padding: 5px 12px !important; 
+        }
+        #city-selector { font-size: 0.7rem !important; padding: 4px 20px 4px 8px !important; }
+        #weather-display { font-size: 0.7rem !important; padding: 4px 10px !important; }
+        
         .drawer-btn { 
-            font-size: 1rem; 
-            padding: 0.75rem 1rem !important; 
-            margin-bottom: 0.5rem !important; 
-        } /* 0.85rem -> 1rem, padding compressed */
-        .drawer-btn-badge { font-size: 0.8rem; } /* 0.7rem -> 0.8rem */
+            font-size: 0.85rem; 
+            padding: 0.5rem 0.8rem !important; 
+            margin-bottom: 0.35rem !important; 
+        }
+        .drawer-btn-badge { font-size: 0.72rem; }
         
         /* HUD 診斷診斷文字 */
-        .hud-diagnostics { font-size: 0.85rem; } /* 0.7rem -> 0.85rem */
-        .hud-title { font-size: 0.9rem; } /* 0.75rem -> 0.9rem */
-        .toast { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
+        .hud-diagnostics { font-size: 0.75rem; }
+        .hud-title { font-size: 0.82rem; }
+        .toast { font-size: 0.85rem; }
+
+        /* 衣櫃單品網格與卡片縮小 (使能 4 張照片同時顯示) */
+        .item-grid {
+            gap: 6px !important;
+            padding: 0 4px !important;
+        }
+        .item-card {
+            border-radius: 8px !important;
+        }
+        .web-item-desc {
+            font-size: 7.5px !important;
+            padding: 3px 4px !important;
+        }
 
         /* 衣櫃下方動作按鈕（上傳、拍照）間距縮排與字體優化 */
         .col-left > div[style*="display: flex"] .btn-prime {
-            font-size: 0.82rem !important; 
+            font-size: 0.72rem !important; 
             padding: 5px 8px !important;
         }
         
@@ -1524,9 +1574,9 @@
             
             <!-- Tab 1: Wardrobe Panel -->
             <div id="sidebar-wardrobe-panel" class="sidebar-panel" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <div style="display: flex; gap: 8px; margin-bottom: 0.35rem; flex-shrink: 0;">
-                    <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem;" onclick="triggerUpload()">📁 上傳</button>
-                    <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
+                <div style="display: flex; gap: 6px; margin-bottom: 0.25rem; flex-shrink: 0;">
+                    <button class="btn-prime" style="flex: 1; padding: 5px; margin-bottom: 0; font-size: 0.72rem;" onclick="triggerUpload()">📁 上傳</button>
+                    <button class="btn-prime" style="flex: 1; padding: 5px; margin-bottom: 0; font-size: 0.72rem; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 10px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
                 </div>
                 <input type="file" id="file-input" hidden accept="image/*">
                 
@@ -1685,7 +1735,7 @@
         <!-- MIDDLE MAIN COLUMN -->
         <main class="col-main">
             <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 1rem;">
-                <h1 style="font-size: 1.25rem; font-weight: 800; letter-spacing: 0.5px;">虛擬穿戴展示區</h1>
+                <h1 style="font-size: 1.05rem; font-weight: 800; letter-spacing: 0.5px; margin: 0;">虛擬穿戴展示區</h1>
                 <div style="display: flex; gap: 8px; align-items: center;">
                     <button class="btn-settings" onclick="nextModel()">👤 更換模特兒</button>
                     <button class="btn-settings" style="background: rgba(232, 167, 185, 0.25); border-color: var(--accent); color: var(--accent); font-weight: 800;" onclick="startGuideTour(true)">❓ 操作導覽</button>
@@ -2830,8 +2880,6 @@
         // --- MODEL SWITCHER ---
         let modelFiles = [
             '穿搭照片/女模特兒/ahmadreza-najafi-Hoggg56L_ZY-unsplash-removebg-preview.png',
-            '穿搭照片/女模特兒/ahmadreza-najafi-QWsXDqB_Yto-unsplash-removebg-preview.png',
-            '穿搭照片/女模特兒/alex-roosso---nE-ucxDLA-unsplash-removebg-preview (1).png',
             '穿搭照片/女模特兒/alex-roosso---nE-ucxDLA-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/alex-roosso--VPf5OJRC6U-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/alex-shaw-7TZCX-4s6Os-unsplash-removebg-preview.png',
@@ -2839,7 +2887,6 @@
             '穿搭照片/女模特兒/alex-shaw-Ky_zRegFuc8-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/alex-shaw-cef6A8m3Fuc-unsplash__1_-removebg-preview.png',
             '穿搭照片/女模特兒/alex-shaw-ex-zvOHhtxQ-unsplash-removebg-preview.png',
-            '穿搭照片/女模特兒/alex-shaw-z2U6YqLC3pc-unsplash-removebg-preview (1).png',
             '穿搭照片/女模特兒/alex-shaw-z2U6YqLC3pc-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/alexander-mass-j_aoTGE3IIk-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/alireza-skndari-YZYyBjZ_SRM-unsplash-removebg-preview.png',
@@ -2858,7 +2905,7 @@
             '穿搭照片/女模特兒/laura-oliveira-v37kJeBUBE4-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/lhon-karwan-09NtgjxfMyY-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/logan-weaver-lgnwvr-rsQGP0hiRWw-unsplash-removebg-preview.png',
-            '穿搭照片/女模特兒/mahmoud-gad-BnS3iWJkv2E-unsplash-removebg-preview.png',
+            '穿搭照片/女模特兒/luiska-andres-RInWCO2fAcs-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/mahmoud-gad-Rmh6HbfooiM-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/mahmoud-gad-a2antzvS6bU-unsplash-removebg-preview.png',
             '穿搭照片/女模特兒/marcel-strauss-VEC_61hEhyI-unsplash-removebg-preview.png',
@@ -5076,10 +5123,11 @@
                 console.log('[VESTIS DEBUG] faceSwappedJpgUrl:', baseModelUrl ? '有分身 URL' : '無');
                 
                 if (!baseModelUrl) {
-                    const currentModelSrc = document.getElementById('base-model').src;
-                    console.log('[VESTIS DEBUG] base-model.src:', currentModelSrc);
+                    // 修正：當沒有數位分身時，優先使用乾淨的預設模特兒底圖，避免帶入已經穿著合成衣物的舊底圖
+                    const cleanModelSrc = (modelFiles && modelFiles.length > 0) ? modelFiles[currentModelIndex] : document.getElementById('base-model').src;
+                    console.log('[VESTIS DEBUG] fallback cleanModelSrc:', cleanModelSrc);
                     // 使用完整的絕對 URL（重要！避免相對路徑問題）
-                    baseModelUrl = await getBase64(currentModelSrc);
+                    baseModelUrl = await getBase64(cleanModelSrc);
                     console.log('[VESTIS DEBUG] baseModelUrl 轉換完成，長度:', baseModelUrl?.length);
                 } else if (!baseModelUrl.startsWith('data:')) {
                     baseModelUrl = await getBase64(baseModelUrl);
