@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VESTIS Atelier | 智慧擬真穿搭設計師</title>
+    <title>VESTIS Atelier ✦ 繆思穿搭 | AI 虛擬試衣間</title>
+    <meta name="description" content="VESTIS Atelier 繆思穿搭——取自拉丁文衣裳與法式高訂工坊之名，結合 AI 虛擬試穿技術，讓每位女性在指尖與光影之間，遇見最美的自己。">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -100,6 +101,16 @@
             color: var(--accent);
             font-weight: 300;
             text-shadow: 0 0 10px rgba(232, 167, 185, 0.2);
+        }
+        .brand-subtitle {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-transform: none;
+            margin-top: 4px;
+            opacity: 0.75;
+            text-shadow: 0 0 12px rgba(232, 167, 185, 0.15);
         }
         
         /* LUXURY SIDEBAR TABS & PANELS */
@@ -818,6 +829,10 @@
                 font-size: 1.2rem;
                 margin-bottom: 1rem;
             }
+            .brand-subtitle {
+                font-size: 0.55rem;
+                letter-spacing: 3px;
+            }
 
             .tab-bar {
                 flex-wrap: wrap;
@@ -1460,7 +1475,7 @@
     <div class="app-shell">
         <!-- LEFT SIDEBAR -->
         <aside class="col-left">
-            <div class="brand">VESTIS <span>ATELIER</span></div>
+            <div class="brand">VESTIS <span>ATELIER</span><div class="brand-subtitle">✦ 繆思穿搭 ✦</div></div>
             
             <!-- Sidebar Navigation Tabs -->
             <div class="sidebar-nav-tabs">
@@ -6149,7 +6164,7 @@
         let currentGuideStep = 0;
         const guideSteps = [
             {
-                title: "歡迎來到 VESTIS Atelier 虛擬衣間",
+                title: "歡迎來到 VESTIS Atelier ✦ 繆思穿搭",
                 desc: "我是您的時尚管家。這裡為您準備了專屬 AI 虛擬試衣間與個人分身系統。只需 5 個簡單步驟即可快速掌握所有操作！",
                 assistant: "很高興為您服務！讓我們點擊下方按鈕開始探索吧！✨",
                 target: null,
