@@ -73,7 +73,7 @@
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            padding: 1.5rem;
+            padding: 1.1rem 1rem 0.6rem 1rem;
             overflow: hidden; /* Prevent sidebar scroll, child panels will handle overflow if needed */
             scrollbar-width: none; /* Hide scrollbar for Firefox */
             backdrop-filter: blur(30px);
@@ -91,7 +91,7 @@
             font-size: 1.85rem;
             font-weight: 600;
             letter-spacing: 3px;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.45rem;
             color: var(--text-h);
             text-align: center;
             text-transform: uppercase;
@@ -104,21 +104,21 @@
         }
         .brand-subtitle {
             font-family: 'Montserrat', sans-serif;
-            font-size: 0.85rem;
+            font-size: 1.05rem;
             letter-spacing: 3px;
             color: var(--accent);
             text-transform: none;
-            margin-top: 5px;
+            margin-top: 3px;
             opacity: 0.9;
             text-shadow: 0 0 12px rgba(232, 167, 185, 0.2);
         }
         .brand-tagline {
             font-family: 'Montserrat', sans-serif;
-            font-size: 0.55rem;
+            font-size: 0.72rem;
             letter-spacing: 2px;
             color: var(--text-p);
             text-transform: none;
-            margin-top: 3px;
+            margin-top: 2px;
             opacity: 0.6;
             font-weight: 400;
         }
@@ -130,7 +130,7 @@
             border: 1px solid var(--glass-border);
             border-radius: 100px;
             padding: 3px;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.45rem;
             position: relative;
             flex-shrink: 0;
         }
@@ -141,7 +141,7 @@
             color: var(--text-p);
             font-size: 0.72rem;
             font-weight: 600;
-            padding: 6px 0;
+            padding: 4px 0;
             cursor: pointer;
             border-radius: 100px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -170,7 +170,7 @@
         .tab-bar {
             display: flex;
             gap: 4px;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             background: rgba(255, 255, 255, 0.02);
             padding: 4px;
             border-radius: 12px;
@@ -181,7 +181,7 @@
             background: transparent;
             border: none;
             color: var(--text-p);
-            padding: 6px 2px;
+            padding: 3px 2px;
             border-radius: 8px;
             font-size: 0.7rem;
             font-weight: 700;
@@ -210,7 +210,7 @@
             color: var(--text-p);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         /* WARDROBE GRID - 2 COLUMNS */
@@ -576,7 +576,7 @@
             background: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--glass-border);
             color: var(--text-h);
-            padding: 1.1rem;
+            padding: 0.75rem 1rem;
             border-radius: 16px;
             font-size: 0.85rem;
             font-weight: 700;
@@ -586,7 +586,7 @@
             align-items: center;
             justify-content: space-between;
             width: 100%;
-            margin-bottom: 0.85rem;
+            margin-bottom: 0.5rem;
             backdrop-filter: blur(10px);
             flex-shrink: 0; /* Prevent flex squeezing and cutoff */
         }
@@ -1268,24 +1268,43 @@
            依使用者角度調整字體大小，放大偏小之文字與按鈕以利閱讀
            ========================================================================= */
         
-        /* 1. 桌面與平板端 (Desktop/Tablet) 全局與區域字體放大 */
+        /* 1. 桌面與平板端 (Desktop/Tablet) 全局與區域字體放大與間距縮減 */
         .sidebar-nav-btn { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
-        .panel-section-title { font-size: 1.25rem; } /* 1.1rem -> 1.25rem */
+        .panel-section-title { 
+            font-size: 1.35rem; 
+            margin-top: 0.15rem !important; 
+            margin-bottom: 0.35rem !important; 
+        } /* 1.25rem -> 1.35rem, and tight margin */
         .tab-btn { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
         .cat-title { font-size: 0.9rem; } /* 0.8rem -> 0.9rem */
         .trash-zone { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
         
         /* 側欄分身與即時分析 */
         #profile-name { font-size: 0.95rem !important; } /* 0.85rem -> 0.95rem */
-        #profile-stats { font-size: 0.8rem !important; } /* 0.7rem -> 0.8rem */
+        #profile-stats { font-size: 0.88rem !important; } /* 0.7rem -> 0.88rem */
         .twin-card .btn-prime { font-size: 0.78rem !important; } /* 0.65rem -> 0.78rem */
         .stat-group span, .stats-card span { font-size: 0.85rem !important; } /* 0.75rem -> 0.85rem */
+        
+        /* 說明文字字體放大 */
+        .twin-card div[style*="font-size: 0.7rem"],
+        #auth-unauthenticated div[style*="font-size: 0.75rem"],
+        #auth-unauthenticated div[style*="font-size: 0.7rem"] {
+            font-size: 0.82rem !important;
+            line-height: 1.45;
+        }
+        #auth-unauthenticated div[style*="font-size: 0.85rem"] {
+            font-size: 0.95rem !important;
+        }
         
         /* 展示區與頂部工具列 */
         .btn-settings { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
         .advisor-summary { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
         .btn-report-trigger { font-size: 0.85rem; } /* 0.75rem -> 0.85rem */
-        .drawer-btn { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
+        .drawer-btn { 
+            font-size: 1rem; 
+            padding: 0.75rem 1rem !important; 
+            margin-bottom: 0.5rem !important; 
+        } /* 0.85rem -> 1rem, padding compressed */
         .drawer-btn-badge { font-size: 0.8rem; } /* 0.7rem -> 0.8rem */
         
         /* HUD 診斷診斷文字 */
@@ -1293,9 +1312,10 @@
         .hud-title { font-size: 0.9rem; } /* 0.75rem -> 0.9rem */
         .toast { font-size: 0.95rem; } /* 0.85rem -> 0.95rem */
 
-        /* 衣櫃下方動作按鈕（上傳、拍照） */
+        /* 衣櫃下方動作按鈕（上傳、拍照）間距縮排與字體優化 */
         .col-left > div[style*="display: flex"] .btn-prime {
-            font-size: 0.78rem !important; /* 0.65rem/0.7rem -> 0.78rem */
+            font-size: 0.82rem !important; 
+            padding: 5px 8px !important;
         }
         
         /* 2. 行動裝置端 (Mobile) 字體微調與放大 */
@@ -1504,7 +1524,7 @@
             
             <!-- Tab 1: Wardrobe Panel -->
             <div id="sidebar-wardrobe-panel" class="sidebar-panel" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <div style="display: flex; gap: 8px; margin-bottom: 0.6rem; flex-shrink: 0;">
+                <div style="display: flex; gap: 8px; margin-bottom: 0.35rem; flex-shrink: 0;">
                     <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem;" onclick="triggerUpload()">📁 上傳</button>
                     <button class="btn-prime" style="flex: 1; padding: 8px; margin-bottom: 0; font-size: 0.78rem; background: var(--cyan); color: #1d0e16; box-shadow: 0 4px 15px var(--cyan-glow);" onclick="openCamera()">📷 拍照</button>
                 </div>
@@ -3710,13 +3730,13 @@
                     webGroup.className = "cat-group";
                     
                     const headerDiv = document.createElement("div");
-                    headerDiv.style.cssText = "display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;";
+                    headerDiv.style.cssText = "display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;";
                     headerDiv.innerHTML = `
                         <div class="cat-title" style="margin-bottom:0;">🌐 WEB 推薦（第 ${batchIdx+1}/${totalBatches} 批・共 ${webItems.length} 件）</div>
                         <button onclick="rotateWebBatch('${c}')" style="
                             background:linear-gradient(135deg,rgba(99,102,241,0.3),rgba(6,182,212,0.3));
                             border:1px solid rgba(99,102,241,0.5); color:#fff; border-radius:20px;
-                            padding:5px 12px; font-size:0.72rem; font-weight:800; cursor:pointer;
+                            padding:3px 8px; font-size:0.72rem; font-weight:800; cursor:pointer;
                             letter-spacing:0.5px; white-space:nowrap; flex-shrink:0;
                             transition:all 0.2s ease;
                         " onmouseover="this.style.background='linear-gradient(135deg,rgba(99,102,241,0.6),rgba(6,182,212,0.6))'" onmouseout="this.style.background='linear-gradient(135deg,rgba(99,102,241,0.3),rgba(6,182,212,0.3))'"
@@ -3727,7 +3747,7 @@
                     const srcCounts = {};
                     webItems.forEach(it => { srcCounts[it.source] = (srcCounts[it.source]||0)+1; });
                     const srcBar = document.createElement("div");
-                    srcBar.style.cssText = "display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;";
+                    srcBar.style.cssText = "display:flex; gap:6px; flex-wrap:wrap; margin-bottom:4px;";
                     Object.entries(srcCounts).forEach(([src, cnt]) => {
                         const tag = document.createElement("span");
                         tag.style.cssText = "font-size:0.65rem; padding:2px 8px; border-radius:10px; background:rgba(255,255,255,0.06); color:var(--text-p); font-weight:700;";
