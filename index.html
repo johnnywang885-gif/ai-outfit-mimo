@@ -1623,7 +1623,8 @@
                         <div style="font-size: 0.75rem; color: var(--text-p); line-height: 1.4; margin-bottom: 12px;">
                             您目前是訪客身分，尚有 <strong id="guest-credits-count" style="color: var(--accent); font-size: 1.1em;">3</strong> 次 AI 試穿額度。
                         </div>
-                        <div style="font-size: 0.7rem; color: var(--text-p);">註冊登入後即可享有雲端資料同步、自訂衣櫃上傳與無限次試穿！</div>
+                        <div style="font-size: 0.7rem; color: var(--text-p); margin-bottom: 10px;">註冊登入後即可享有雲端資料同步、自訂衣櫃上傳與無限次試穿！</div>
+                        <button class="btn-prime" style="padding: 6px 12px; font-size: 0.75rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--accent); margin-bottom: 0; box-shadow: none; border-radius: 8px; width: 100%; cursor: pointer;" onclick="resetGuestCredits()">🔄 重置 3 次體驗額度</button>
                     </div>
                     
                     <div style="display: flex; flex-direction: column; gap: 8px;">
@@ -2171,6 +2172,13 @@
                 localStorage.setItem("vestis_guest_credits", guestCredits.toString());
                 updateGuestCreditsUI();
             }
+        }
+
+        function resetGuestCredits() {
+            guestCredits = 3;
+            localStorage.setItem("vestis_guest_credits", "3");
+            updateGuestCreditsUI();
+            showToast("🎁 訪客體驗額度已重置為 3 次！");
         }
 
         async function checkSession() {

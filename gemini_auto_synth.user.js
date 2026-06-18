@@ -648,9 +648,11 @@
                     const base64 = reader.result;
                     
                     // 1. 同時嘗試 window.opener postMessage 發送 (雙通道備用)
+                    let sentViaPostMessage = false;
                     if (window.opener) {
                         try {
                             window.opener.postMessage({ type: "VESTIS_SYNTH_RESULT", data: base64 }, "*");
+                            sentViaPostMessage = true;
                         } catch(e) {}
                     }
                     
@@ -679,7 +681,9 @@
                             onerror: function(err) {
                                 console.error("[VESTIS Cloud] PATCH failed:", err);
                                 updateStatus("⚠️ 上傳至雲端資料庫失敗，請嘗試手動右鍵複製。", "#f43f5e");
-                                resultSent = false;
+                                if (!sentViaPostMessage) {
+                                    resultSent = false;
+                                }
                             }
                         });
                     } else {
@@ -696,7 +700,9 @@
                             },
                             onerror: function() {
                                 updateStatus("⚠️ 透過本地伺服器傳回失敗，請嘗試手動右鍵複製。", "#f43f5e");
-                                resultSent = false;
+                                if (!sentViaPostMessage) {
+                                    resultSent = false;
+                                }
                             }
                         });
                     }
