@@ -4,7 +4,23 @@
 
 ---
 
-## 🚀 最新更新項目 (2026-06-16 VESTIS AI 雲端網頁版 Supabase 整合 — Phase 1)
+## 🚀 最新更新項目 (2026-06-18 版面優化、免註冊體驗額度防重複扣除與 Google 登入修復)
+
+### 1. 模特兒切換箭頭內縮與操作面板復原
+* **版面美化**：將 `trial-actions-panel` 重新移回**左下角**（`left: 1.25rem`，並改為靠左排列），避免置於底部正中央時遮擋主模特兒的穿搭服裝細節。
+* **按鈕防遮擋**：將 desktop 版的左右模特兒切換箭頭（`.model-switch-left` 與 `.model-switch-right`）由原本的外懸狀態（`-25px`）改為**向模特兒主體內縮**（`10px`），確保不會被左下角的 `trial-actions-panel` 操作面板遮擋，操作更為流暢。
+
+### 2. 免註冊體驗額度防重複扣除鎖定 (Guest Credits Duplicate Lock)
+* **防重複處理鎖**：新增了 `isProcessingSynthesizedImage` 狀態鎖。當「一鍵多圖自動合成」完成時，無論是透過 postMessage 還是本地 API 輪詢獲取結果，皆只會執行一次 `loadSynthesizedImageFromBase64` 處理，從而**確保每次自動合成僅會精準扣除 1 次體驗額度**。
+* **額度防洩漏**：徹底修復了免註冊體驗只進行一次 AI 合成便因多通道重複扣減而耗盡所有額度（3 次）的重大 bug，訪客體驗更為友善。
+
+### 3. Google 帳戶登入重定向與錯誤排除 (Supabase OAuth Whitelist Optimize)
+* **重定向路徑優化**：將 Google 登入的 `redirectTo` 由 `window.location.origin + window.location.pathname`（例如 `/index.html`）優化為**根路徑** `window.location.origin + "/"`。此舉可極大程度地避免因未將帶有特定檔名之完整路徑手動加入 Supabase Redirect URLs 白名單而觸發的 `redirect_uri_not_allowed` 錯誤。
+* **錯誤提示與指引**：在 Google 登入按鈕中加入 Supabase 連線狀態判斷，如未成功連線或後台 Google Provider 未啟用，會主動以 Toast 顯示引導說明（「請至 Supabase 控制台的 Auth -> Providers 開啟 Google 登入功能」），便於開發者排查。
+
+---
+
+## 🚀 歷史更新項目 (2026-06-16 VESTIS AI 雲端網頁版 Supabase 整合 — Phase 1)
 
 ### 1. 訪客免註冊體驗模式 (Guest Mode)
 * **體驗優先**：支援訪客在不註冊登入的情況下，直接體驗 3 次 AI 擬真渲染或 Gemini 穿搭合成。
