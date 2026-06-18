@@ -72,4 +72,6 @@ Or double-click `一鍵啟動_VESTIS_AI.bat`. Requires Python in PATH.
 - **`mergeOutfitCanvas()`** uses 52% split line with 6% feathering. Requires `crossOrigin="Anonymous"` — wrap API results with `getBase64()` first.
 - **Gemini userscript (`v2.4`)** uses `&vestis=1` URL param as safety marker. Without it, the script exits immediately to avoid interfering with manual Gemini use.
 - **Supabase**: Storage bucket named `wardrobe` (case-sensitive, public) must exist. CDN URL must be `@supabase/supabase-js@2` (not `@supabase/supabaseClient-js@2`). Global variable must be `supabaseClient` (not `supabase`) to avoid redeclaration conflict with `window.supabase`.
+- **`modelFiles` array**: Hardcoded default female model list contains exactly 51 files. Ensure all items in the array exist in `穿搭照片/女模特兒/` to prevent broken switcher images.
+- **`startVTON()` fallback base model**: When `hasTwin` is false, always use the clean `modelFiles[currentModelIndex]` as the base image for VTON instead of `document.getElementById('base-model').src` (which contains previously fused clothes).
 `
