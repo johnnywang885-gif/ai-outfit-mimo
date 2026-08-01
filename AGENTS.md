@@ -5,7 +5,7 @@
 Stateful VESTIS AI Try-on System:
 1. **Frontend Monolith:** `index.html` (~460KB, 6419 lines). All UI, CSS, and JS in one file. No build tool or dependencies.
 2. **Local Relay Server:** `vestis_server.py` (Python, port 8000). Serves static files + stateful endpoints (`/api/store_payload`, `/api/get_payload`, `/api/store_result`, `/api/get_result`) to bypass COOP/CORS.
-3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.4). Automates `gemini.google.com` for outfit synthesis.
+3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.5). Automates `gemini.google.com` for outfit synthesis.
 
 **Layout:** Two-column CSS Grid — `col-left` (360px, wardrobe/upload/twin/assets/account), `col-main` (flex, try-on display). `col-right` is `display: none`. Mobile ≤768px uses single-column stacked layout with fixed bottom nav.
 
@@ -61,6 +61,7 @@ Or double-click `一鍵啟動_VESTIS_AI.bat`. Requires Python in PATH.
 - **`faceSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. Reset to `null` on model switch. Do NOT overwrite with VTON results.
 - **`sideSwappedJpgUrl`** is `null` until `triggerFaceSwap()` succeeds. It is stored separately for side-by-side preview.
 - **On Vercel**, localStorage persists per browser but no server-side relay exists. Gemini auto-synthesis (local relay endpoints) and `list_models` API will NOT work. Model images load from hardcoded array.
+- **Gemini cloud channel (`gemini_payloads`)**: New `session_id`-keyed Supabase table lets GUESTS and logged-in users exchange payload/result on Vercel (no localhost relay, no `window.opener` dependency). `triggerGeminiQuickSynth` writes `gemini_payloads` + passes `session_id` in the Gemini URL whenever `supabaseClient` exists; `startResultPolling(sessionId)` polls it; userscript v2.5 reads/patch-es it. Legacy `gemini_sessions` (user_id keyed) still supported as fallback.
 - **Chinese-character paths** (`穿搭照片/`, `web_images/`) must be `encodeURIComponent`-encoded when constructing URLs on Vercel. Handled in `getBase64()`, `initRandomModel()`, `updateModelDisplay()`.
 - **`switchSidebarTab('account')`** requires a defined case in the switch statement (was missing, causing silent no-op on member tab click and credit-exhaustion redirect).
 - **`mobileNav('account')`** similarly requires a defined switch case.

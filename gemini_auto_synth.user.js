@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VESTIS AI Gemini 穿搭合成助手自動化腳本
 // @namespace    http://tampermonkey.net/
-// @version      2.4
+// @version      2.5
 // @description  自動化上傳 VESTIS 穿搭素材與提示詞至 Gemini 網頁前端，並自動將合成圖片帶回系統！
 // @author       Antigravity
 // @match        https://gemini.google.com/*
@@ -334,9 +334,11 @@
     }
 
     // 從 Supabase 雲端資料庫讀取穿搭資料
-    function fetchPayloadFromSupabase(sbUrl, sbKey, userId) {
+    function fetchPayloadFromSupabase(sbUrl, sbKey, userId, sessionId) {
         updateStatus("🌐 偵測到雲端連線，正從 Supabase 載入穿搭素材...", "#3b82f6");
-        const url = `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}&select=*`;
+        const url = sessionId
+            ? `${sbUrl}/rest/v1/gemini_payloads?session_id=eq.${encodeURIComponent(sessionId)}&select=*`
+            : `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}&select=*`;
         GM_xmlhttpRequest({
             method: "GET",
             url: url,
@@ -351,7 +353,7 @@
                     const session = list?.[0];
                     if (session && session.payload) {
                         updateStatus("📥 從雲端成功獲取資料，開始自動合成...", "#06b6d4");
-                        window.vestisCloud = { sbUrl, sbKey, userId };
+                        window.vestisCloud = { sbUrl, sbKey, userId, sessionId };
                         automateWorkflow(session.payload);
                     } else {
                         updateStatus("⚠️ 雲端資料庫中沒有待處理的穿搭資料，請回主頁重試。", "#eab308");
@@ -383,9 +385,10 @@
         const sbUrl = params.get('sb_url');
         const sbKey = params.get('sb_key');
         const userId = params.get('user_id');
+        const sessionId = params.get('session_id');
 
-        if (sbUrl && sbKey && userId) {
-            fetchPayloadFromSupabase(sbUrl, sbKey, userId);
+        if (sbUrl && sbKey && (userId || sessionId)) {
+            fetchPayloadFromSupabase(sbUrl, sbKey, userId, sessionId);
         } else if (window.opener) {
             updateStatus("🔗 已建立視窗連接，正向 VESTIS 要求穿搭資料...", "#22c55e");
             window.opener.postMessage({ type: "GEMINI_READY" }, "*");
@@ -658,10 +661,13 @@
                     
                     // 2. 依模式傳送：雲端模式寫入 Supabase，本地模式傳送至本地伺服器
                     if (window.vestisCloud) {
-                        const { sbUrl, sbKey, userId } = window.vestisCloud;
+                        const { sbUrl, sbKey, userId, sessionId } = window.vestisCloud;
+                        const patchUrl = sessionId
+                            ? `${sbUrl}/rest/v1/gemini_payloads?session_id=eq.${encodeURIComponent(sessionId)}`
+                            : `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}`;
                         GM_xmlhttpRequest({
                             method: "PATCH",
-                            url: `${sbUrl}/rest/v1/gemini_sessions?user_id=eq.${userId}`,
+                            url: patchUrl,
                             headers: {
                                 "apikey": sbKey,
                                 "Authorization": `Bearer ${sbKey}`,

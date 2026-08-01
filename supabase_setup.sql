@@ -152,6 +152,36 @@ create policy "Allow anyone to delete gemini sessions." on public.gemini_session
 
 
 -- =========================================================================
+-- 6b. Gemini Payloads Table (Vercel 雲端合成專用：以 session_id 為鍵，
+--     讓訪客與登入用戶皆可透過 Supabase 傳遞穿搭素材與合成結果，
+--     不再依賴本機中繼伺服器或 window.opener)
+-- =========================================================================
+create table if not exists public.gemini_payloads (
+  session_id text primary key,
+  payload jsonb,
+  result text,
+  status text default 'pending',
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS on Gemini Payloads
+alter table public.gemini_payloads enable row level security;
+
+-- Policies (開放匿名 Userscript 依 session_id 讀寫)
+create policy "Allow anyone to select gemini payloads." on public.gemini_payloads
+  for select using (true);
+
+create policy "Allow anyone to insert gemini payloads." on public.gemini_payloads
+  for insert with check (true);
+
+create policy "Allow anyone to update gemini payloads." on public.gemini_payloads
+  for update using (true);
+
+create policy "Allow anyone to delete gemini payloads." on public.gemini_payloads
+  for delete using (true);
+
+
+-- =========================================================================
 -- 7. Trigger to Automatically Create Profile Row on User Sign-Up
 -- =========================================================================
 create or replace function public.handle_new_user()

@@ -6025,11 +6025,16 @@
             };
             vestisPayloadForGemini = payload;
 
-            if (currentUser && supabaseClient) {
-                // 雲端模式：寫入 Supabase gemini_sessions
+            // 產生本次合成的唯一 session ID（訪客與登入用戶皆可走雲端通道，Vercel 上不再依賴本機伺服器）
+            const sessionId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : ('sess_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10));
+
+            if (supabaseClient) {
+                // 雲端模式（訪客或登入用戶）：寫入 Supabase gemini_payloads
                 addHUDLine("📡 正在向雲端資料庫註冊穿搭 Payload 數據...", 400);
-                supabaseClient.from('gemini_sessions').upsert({
-                    user_id: currentUser.id,
+                supabaseClient.from('gemini_payloads').upsert({
+                    session_id: sessionId,
                     payload: payload,
                     result: null,
                     status: 'pending',
@@ -6057,7 +6062,7 @@
             }
 
             // 啟動雙向輪詢以獲取合成結果
-            startResultPolling();
+            startResultPolling(sessionId);
             addHUDLine("💡 提示：系統已啟用背景防休眠技術，將自動於螢幕外完全隱形執行...", 450);
 
             setTimeout(() => {
@@ -6069,8 +6074,8 @@
                 const top = (window.screen.availHeight || window.screen.height) - 50;
                 
                 let geminiUrl = "https://gemini.google.com/app/4fe828e12662320a?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all&vestis=1";
-                if (currentUser && supabaseClient) {
-                    geminiUrl += `&sb_url=${encodeURIComponent(SUPABASE_URL)}&sb_key=${encodeURIComponent(SUPABASE_KEY)}&user_id=${currentUser.id}`;
+                if (supabaseClient) {
+                    geminiUrl += `&sb_url=${encodeURIComponent(SUPABASE_URL)}&sb_key=${encodeURIComponent(SUPABASE_KEY)}&session_id=${encodeURIComponent(sessionId)}`;
                 }
                 
                 activeGeminiWindow = window.open(
@@ -6206,15 +6211,15 @@
             }
         }
 
-        function startResultPolling() {
+        function startResultPolling(sessionId) {
             if (resultPollingInterval) clearInterval(resultPollingInterval);
             console.log('[VESTIS] Starting result polling...');
             
             resultPollingInterval = setInterval(() => {
-                if (currentUser && supabaseClient) {
-                    supabaseClient.from('gemini_sessions')
+                if (supabaseClient && sessionId) {
+                    supabaseClient.from('gemini_payloads')
                         .select('result, status')
-                        .eq('user_id', currentUser.id)
+                        .eq('session_id', sessionId)
                         .single()
                         .then(({ data, error }) => {
                             if (data && data.status === 'completed' && data.result) {
@@ -6224,11 +6229,11 @@
                                 stopResultPolling();
                                 loadSynthesizedImageFromBase64(data.result);
                                 
-                                supabaseClient.from('gemini_sessions').update({ status: 'idle' }).eq('user_id', currentUser.id).then(()=>{});
+                                supabaseClient.from('gemini_payloads').update({ status: 'idle' }).eq('session_id', sessionId).then(()=>{});
                             }
                         })
                         .catch(err => {});
-                } else {
+                } else if (!supabaseClient) {
                     fetch('http://localhost:8000/api/get_result')
                         .then(res => {
                             if (!res.ok) throw new Error();
