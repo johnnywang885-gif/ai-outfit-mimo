@@ -9,6 +9,8 @@
 // @connect      googleusercontent.com
 // @connect      *
 // @run-at       document-start
+// @downloadURL  https://raw.githubusercontent.com/johnnywang885-gif/ai-outfit-mimo/main/gemini_auto_synth.user.js
+// @updateURL    https://raw.githubusercontent.com/johnnywang885-gif/ai-outfit-mimo/main/gemini_auto_synth.user.js
 // ==/UserScript==
 
 (function() {
