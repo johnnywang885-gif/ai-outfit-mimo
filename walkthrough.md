@@ -46,7 +46,9 @@
 * **向下相容**：若無 Supabase 金鑰或在本地模式下，executeVTON 會自動 fallback 回原本的 client-side API 直接調用，確保本地離線開發依然可用。
 
 ### 6. 雲端 Gemini 自動化合成會話控制
-* **雲端會話同步**：Gemini 智慧合成調用時，改為 upsert 雲端 `gemini_sessions` 表。同時，背景 Gemini 自動化視窗載入時會自動透過 URL 參數 `sb_url`, `sb_key`, `user_id` 與 Supabase 建立連線，讀取 Payload 並 PATCH 寫回 completed base64 結果，完美支援雲端背景無感合成！
+* **雲端會話同步（session_id 通道）**：Gemini 智慧合成調用時，`triggerGeminiQuickSynth` 會產生唯一 `session_id`（UUID），並 upsert 至雲端 `gemini_payloads` 表。背景 Gemini 自動化視窗載入時，透過 URL 參數 `sb_url`, `sb_key`, `session_id` 與 Supabase 建立連線，依 session_id 讀取 Payload，合成完成後 PATCH 寫回 completed base64 結果，`startResultPolling(sessionId)` 輪詢偵測後載入主畫面，完美支援雲端背景無感合成！
+* **訪客與登入用戶皆可用**：`gemini_payloads` 以 `session_id` 為鍵（無 FK），不依賴 `user_id`/`window.opener`/本機中繼伺服器，讓 Vercel 部署版上的訪客與登入用戶都能正常運作。
+* **向下相容備援**：userscript 仍保留舊版 `gemini_sessions`（`user_id` 鍵）+ `window.opener` postMessage + 本機伺服器三條備援通道，僅在特定環境（無 Supabase 或無 session_id）時啟用。
 
 ---
 
