@@ -3,7 +3,7 @@
 ## Architecture
 
 Stateful VESTIS AI Try-on System:
-1. **Frontend Monolith:** `index.html` (~460KB, 6419 lines). All UI, CSS, and JS in one file. No build tool or dependencies.
+1. **Frontend Monolith:** `index.html` (~458KB, 6596 lines). All UI, CSS, and JS in one file. No build tool or dependencies.
 2. **Local Relay Server:** `vestis_server.py` (Python, port 8000). Serves static files + stateful endpoints (`/api/store_payload`, `/api/get_payload`, `/api/store_result`, `/api/get_result`) to bypass COOP/CORS.
 3. **Automated Userscript:** `gemini_auto_synth.user.js` (v2.5). Automates `gemini.google.com` for outfit synthesis.
 
@@ -11,18 +11,19 @@ Stateful VESTIS AI Try-on System:
 
 ## Running
 
-```bash
-python vestis_server.py
-# Open http://localhost:8000/index.html
-```
-
-Or double-click `一鍵啟動_VESTIS_AI.bat`. Requires Python in PATH.
+- **Use `py`, not `python`** — on this machine `python` is a Microsoft Store stub; `py` is the real launcher (Python 3.13).
+  ```bash
+  py vestis_server.py
+  # Open http://localhost:8000/index.html
+  ```
+- Or double-click `一鍵啟動_VESTIS_AI.bat` (already uses `py`, portable `cd /d "%~dp0"`, starts server then opens `index.html`).
 
 ## Vercel Deployment
 
 - `vercel.json` uses `@vercel/static` builder for `index.html`, `web_images/**`, `穿搭照片/**`
 - Do NOT commit `package.json`, `package-lock.json`, or `node_modules` — Vercel misdetects as Node.js and fails to deploy
-- Deployed at: `https://ai-outfit-mimo.vercel.app`
+- Deployed at: `https://ai-outfit-mimo.vercel.app` — auto-deploys on push to `main`
+- Repo is PUBLIC → `raw.githubusercontent.com/johnnywang885-gif/ai-outfit-mimo/main/...` serves the userscript and image fallbacks without auth
 
 ## External APIs
 
@@ -71,8 +72,9 @@ Or double-click `一鍵啟動_VESTIS_AI.bat`. Requires Python in PATH.
 - **Trash zone** deletes both custom uploads (id > 1000000) and defaults (id ≤ 1000000). Web items in `webBatches{}` are protected.
 - **`clearItemSilent(cat)`** clears model viewer overlay silently. Always follow with `updateCancelButtonsVisibility()` + `analyzeStyles()`.
 - **`mergeOutfitCanvas()`** uses 52% split line with 6% feathering. Requires `crossOrigin="Anonymous"` — wrap API results with `getBase64()` first.
-- **Gemini userscript (`v2.4`)** uses `&vestis=1` URL param as safety marker. Without it, the script exits immediately to avoid interfering with manual Gemini use.
+- **Gemini userscript (`v2.5`)** uses `&vestis=1` URL param as safety marker. Without it, the script exits immediately to avoid interfering with manual Gemini use.
+- **Userscript versioning**: `@version` drives Tampermonkey auto-update (`@updateURL`/`@downloadURL` → raw GitHub, works because repo is public). ALWAYS bump `@version` when editing the userscript, then commit+push; also update the on-screen title `🧬 VESTIS AI 助手 vX.Y` (~line 130).
+- **Supabase DB direct access**: project `ncxzvbsrsiabcfjufpob` lives on pooler cluster `aws-1-ap-northeast-1.pooler.supabase.com` (port 6543, user `postgres.<ref>`) — NOT the documented default `aws-0-*`; `db.<ref>.supabase.co` does not resolve (IPv6-only). Edge function `vton-proxy` source lives in `supabase/functions/`.
 - **Supabase**: Storage bucket named `wardrobe` (case-sensitive, public) must exist. CDN URL must be `@supabase/supabase-js@2` (not `@supabase/supabaseClient-js@2`). Global variable must be `supabaseClient` (not `supabase`) to avoid redeclaration conflict with `window.supabase`.
 - **`modelFiles` array**: Hardcoded default female model list contains exactly 51 files. Ensure all items in the array exist in `穿搭照片/女模特兒/` to prevent broken switcher images.
 - **`startVTON()` fallback base model**: When `hasTwin` is false, always use the clean `modelFiles[currentModelIndex]` as the base image for VTON instead of `document.getElementById('base-model').src` (which contains previously fused clothes).
-`
