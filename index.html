@@ -2790,12 +2790,14 @@
 
         // --- CORE VTON API CALLER ---
         async function executeVTON(cat, garmentUrl, humanUrl, itemName = "") {
-            if (supabaseClient) {
+            if (currentUser && supabaseClient) {
                 console.log(`[VESTIS Cloud] 呼叫 vton-proxy 邊緣函數, engine=${VTON_ENGINE}`);
                 try {
-                    const { data, error } = await supabaseClient.functions.invoke('vton-proxy', {
+                    const invokeEdge = supabaseClient.functions.invoke('vton-proxy', {
                         body: { cat, garmentUrl, humanUrl, itemName, engine: VTON_ENGINE }
                     });
+                    const edgeTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("vton-proxy 呼叫逾時 (15s)")), 15000));
+                    const { data, error } = await Promise.race([invokeEdge, edgeTimeout]);
                     if (error) throw error;
                     if (data && data.outputUrl) {
                         return data.outputUrl;
@@ -3075,8 +3077,10 @@
 
                 if (type === "head") {
                     setAIComment("<span style='color:var(--cyan);'>✨ [Step 1/2] 正在進行 AI 高精細度人臉特徵融合...</span>");
-                    const userFaceBase64 = await getBase64(userImgUrl);
-                    const modelBase64 = await getBase64(modelUrl);
+                    const [userFaceBase64, modelBase64] = await Promise.all([
+                        getBase64(userImgUrl),
+                        getBase64(modelUrl)
+                    ]);
                     
                     const swapRes = await fetch("https://fal.run/fal-ai/face-swap", {
                         method: "POST",
@@ -5142,17 +5146,19 @@
                 const upperEl = hasOuter ? outerwearEl : (hasTop ? topEl : null);
                 const upperCat = hasOuter ? 'outerwear' : 'top';
 
+                const upperB64Promise = upperEl ? getBase64(upperEl.src) : Promise.resolve(null);
+                const bottomB64Promise = hasBottom ? getBase64(bottomEl.src) : Promise.resolve(null);
+                if (upperEl) console.log('[VESTIS DEBUG] 准備上身渲染， src:', upperEl.src?.substring(0, 80));
+                if (hasBottom) console.log('[VESTIS DEBUG] 准備下身渲染， src:', bottomEl.src?.substring(0, 80));
+                const [upperB64, bottomB64] = await Promise.all([upperB64Promise, bottomB64Promise]);
+
                 if (upperEl) {
-                    console.log('[VESTIS DEBUG] 准備上身渲染， src:', upperEl.src?.substring(0, 80));
-                    const upperB64 = await getBase64(upperEl.src);
                     console.log('[VESTIS DEBUG] 上身 base64 長度:', upperB64?.length);
                     upperInfo = { cat: upperCat, b64: upperB64 };
                     renderTasks.push(executeVTON(upperCat, upperB64, baseModelUrl));
                 }
 
                 if (hasBottom) {
-                    console.log('[VESTIS DEBUG] 准備下身渲染， src:', bottomEl.src?.substring(0, 80));
-                    const bottomB64 = await getBase64(bottomEl.src);
                     console.log('[VESTIS DEBUG] 下身 base64 長度:', bottomB64?.length);
                     bottomInfo = { cat: 'bottom', b64: bottomB64 };
                     renderTasks.push(executeVTON('bottom', bottomB64, baseModelUrl));
@@ -5171,8 +5177,10 @@
                 let finalResultUrl = "";
                 if (finalTopUrl && finalBottomUrl) {
                     addHUDLine("🎨 正在進行服飾層次融合...", 500);
-                    const topB64 = await getBase64(finalTopUrl);
-                    const bottomB64 = await getBase64(finalBottomUrl);
+                    const [topB64, bottomB64] = await Promise.all([
+                        getBase64(finalTopUrl),
+                        getBase64(finalBottomUrl)
+                    ]);
                     finalResultUrl = await mergeOutfitCanvas(topB64, bottomB64);
                 } else {
                     finalResultUrl = finalTopUrl || finalBottomUrl;
@@ -5258,17 +5266,25 @@
         }
 
         async function downloadVTONResult() {
+            const imgEl = document.getElementById('vton-result-img');
+            if (!imgEl || !imgEl.src) return;
+
+            // 無論儲存日誌成敗、縮圖載入成敗，操作完成後一律關閉視窗（防重入）
+            let finished = false;
+            const finishAndClose = () => {
+                if (finished) return;
+                finished = true;
+                document.getElementById('vton-overlay').style.display = 'none';
+            };
+
             try {
-                const imgEl = document.getElementById('vton-result-img');
-                if (!imgEl.src) return;
-                
                 showToast("⏳ 正在下載並儲存日誌中...");
-                
+
                 try {
                     const response = await fetch(imgEl.src);
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
-                    
+
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
@@ -5281,38 +5297,42 @@
                 } catch (e) {
                     console.warn("下載原圖被瀏覽器 CORS 阻擋，但已為您加入日誌！", e);
                 }
-                
+
                 const img = new Image();
                 img.crossOrigin = "Anonymous";
                 img.src = imgEl.src;
-                
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const scale = Math.min(1, 260 / img.naturalWidth);
-                    canvas.width = img.naturalWidth * scale;
-                    canvas.height = img.naturalHeight * scale;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    const thumbBase64 = canvas.toDataURL('image/jpeg', 0.65);
-                    
-                    saveOutfitLog(thumbBase64, imgEl.src).then(() => {
+
+                img.onload = async () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const scale = Math.min(1, 260 / img.naturalWidth);
+                        canvas.width = img.naturalWidth * scale;
+                        canvas.height = img.naturalHeight * scale;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        const thumbBase64 = canvas.toDataURL('image/jpeg', 0.65);
+
+                        await saveOutfitLog(thumbBase64, imgEl.src);
                         showToast("✅ 已成功下載並加入穿搭日誌！");
-                        document.getElementById('vton-overlay').style.display = 'none';
-                    }).catch(err => {
+                    } catch (err) {
                         console.error("Failed to save outfit log:", err);
                         showToast("⚠️ 儲存日誌時發生錯誤。");
-                    });
+                    } finally {
+                        finishAndClose();
+                    }
                 };
-                
+
                 img.onerror = () => {
                     showToast("⚠️ 無法產生縮圖，但已嘗試下載原圖。");
+                    finishAndClose();
                 };
 
             } catch (err) {
                 console.error("Download/Save failed:", err);
                 showToast("❌ 儲存失敗，請長按或按右鍵手動儲存。");
+                finishAndClose();
             }
         }
 
@@ -5782,6 +5802,7 @@
                 document.getElementById('vton-loading').style.display = 'none';
                 document.getElementById('vton-result-ui').style.display = 'block';
                 document.getElementById('vton-result-img').src = finalResultUrl;
+                document.getElementById('vton-final-time').innerText = vtonFinalElapsedTime;
                 
                 const faceImg = document.getElementById('twin-face-img').src;
                 const hasTwin = faceImg && faceImg.length > 100 && !faceImg.includes('undefined');
@@ -5930,32 +5951,38 @@
                 }
             }
 
-            const addMaterial = async (el, label, filename) => {
-                if (isVisible(el)) {
-                    let nameSuffix = "";
-                    const itemId = el.getAttribute('data-item-id');
-                    if (itemId) {
-                        const itemObj = findItemById(itemId);
-                        if (itemObj && itemObj.name) {
-                            nameSuffix = `（款式名稱：${itemObj.name}）`;
-                        }
-                    }
-                    try {
-                        const base64 = await getBase64(el.src);
-                        downloadQueue.push({ src: base64, filename: filename });
-                    } catch (err) {
-                        console.warn(`[downloadQueue] ${label} conversion failed, using fallback URL`, err);
-                        downloadQueue.push({ src: el.src, filename: filename });
-                    }
-                    promptText += `\n- ${label}的圖片已附上${nameSuffix}。`;
-                }
-            };
+            const materials = [
+                { el: topEl, label: "👕 上衣", filename: "top.png" },
+                { el: outerwearEl, label: "🧥 外套", filename: "outer.png" },
+                { el: bottomEl, label: "👖 下著", filename: "bottom.png" },
+                { el: shoesEl, label: "👟 鞋子", filename: "shoes.png" },
+                { el: accessoryEl, label: "👒 配件/帽子", filename: "accessory.png" }
+            ];
 
-            await addMaterial(topEl, "👕 上衣", "top.png");
-            await addMaterial(outerwearEl, "🧥 外套", "outer.png");
-            await addMaterial(bottomEl, "👖 下著", "bottom.png");
-            await addMaterial(shoesEl, "👟 鞋子", "shoes.png");
-            await addMaterial(accessoryEl, "👒 配件/帽子", "accessory.png");
+            const visibleMaterials = materials.filter(m => isVisible(m.el));
+            const materialResults = await Promise.all(visibleMaterials.map(async (m) => {
+                let nameSuffix = "";
+                const itemId = m.el.getAttribute('data-item-id');
+                if (itemId) {
+                    const itemObj = findItemById(itemId);
+                    if (itemObj && itemObj.name) {
+                        nameSuffix = `（款式名稱：${itemObj.name}）`;
+                    }
+                }
+                let src;
+                try {
+                    src = await getBase64(m.el.src);
+                } catch (err) {
+                    console.warn(`[downloadQueue] ${m.label} conversion failed, using fallback URL`, err);
+                    src = m.el.src;
+                }
+                return { ...m, nameSuffix, src };
+            }));
+
+            materialResults.forEach((m) => {
+                downloadQueue.push({ src: m.src, filename: m.filename });
+                promptText += `\n- ${m.label}的圖片已附上${m.nameSuffix}。`;
+            });
 
             promptText += "\n請注意保持人像比例，衣服、鞋子與配件位置要與人體完美貼合，並保持背景與光影融合自然，生成一張逼真且高畫質的穿搭照片。";
 
@@ -6501,12 +6528,24 @@
             startGuideTour(false);
         }, 2000);
 
+        // 保險機制：當任一 modal overlay 開啟時自動隱藏引導導覽，
+        // 避免導覽 tooltip 浮在 modal 上方或干擾任何視窗的點擊
+        new MutationObserver(() => {
+            const tour = document.getElementById('guide-tour-container');
+            if (tour && tour.style.display !== 'none') {
+                const overlayVisible = Array.from(document.querySelectorAll('.overlay')).some(
+                    ov => ov.style.display && ov.style.display !== 'none'
+                );
+                if (overlayVisible) tour.style.display = 'none';
+            }
+        }).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+
     </script>
 
     <!-- VESTIS Onboarding Guide Tour Overlay -->
     <div id="guide-tour-container" style="display: none; position: fixed; inset: 0; z-index: 10000; pointer-events: none; transition: all 0.4s ease;">
         <!-- Dark Backdrop -->
-        <div id="guide-backdrop" style="position: absolute; inset: 0; background: transparent; pointer-events: auto; transition: all 0.4s ease;"></div>
+        <div id="guide-backdrop" style="position: absolute; inset: 0; background: transparent; pointer-events: none; transition: all 0.4s ease;"></div>
         
         <!-- Glowing Target Border Overlay -->
         <div id="guide-glowing-target" style="position: absolute; border: 2.5px solid var(--cyan); border-radius: 20px; pointer-events: none; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; z-index: 9999; animation: guidePulse 2s infinite; box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.72), 0 0 20px var(--cyan-glow);"></div>
